@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Carousel — C. Continuous</title>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@400;500&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit/base.css">
+<style>
+  :root { --bg: #b9b6ab; --ink: #2a2622; }
+  /* Simulated photos: replace with .media with a background-image */
+  .warm  { background: radial-gradient(60% 50% at 50% 60%, #c9935a, #3a2a1d 70%, #15100b); }
+  .stone { background: linear-gradient(160deg, #6d6257, #2b2520 70%); }
+  .wood  { background: linear-gradient(90deg, #8a6440, #c49a6c 40%, #6f4c2e); }
+  .whisper { font: italic 400 64px/1.05 var(--f-serif); color: var(--ink); }
+</style>
+</head>
+<body>
+<!-- Slides side by side: slide k starts at (k-1)*1080px. The .span elements cross slides. -->
+<div class="carousel">
+
+  <section class="slide"><div class="bleed stone"></div></section>          <!-- 01 full-bleed -->
+  <section class="slide"></section>                                          <!-- 02 neutral background -->
+  <section class="slide"></section>                                          <!-- 03 neutral background -->
+  <section class="slide"><div class="bleed wood"></div></section>            <!-- 04 full-bleed -->
+  <section class="slide">                                                    <!-- 05 closing -->
+    <div class="content bottom left"><p class="whisper">Where time<br>slows down.</p></div>
+  </section>
+
+  <!-- Framed panorama crossing 02 → 03 (seam at 2160px).
+       Point of interest kept off the cut line. -->
+  <div class="span warm" style="left:1380px; top:330px; width:1560px; height:690px"></div>
+
+  <!-- Vertical image entering from slide 04 into 05 (seam at 4320px) -->
+  <div class="span stone" style="left:4020px; top:180px; width:620px; height:780px; box-shadow:0 30px 60px rgba(0,0,0,.25)"></div>
+
+</div>
+<script src="kit/carousel.js"></script>
+</body>
+</html>

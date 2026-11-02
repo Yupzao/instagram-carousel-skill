@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Carousel — B. Portfolio</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit/base.css">
+<style>
+  :root { --bg: #e9eef2; --ink: #0d0f12; }
+  /* Replace each .ph with: <div class="media" style="background-image:url('photos/x.jpg')"></div> */
+  .cover-title { position: absolute; left: var(--pad); right: var(--pad); top: 300px; text-align: center; }
+  .cover-title .kicker { font: 800 44px/1 var(--f-display); letter-spacing: .02em; }
+  .cover-title .big { font: 900 230px/.85 var(--f-display); letter-spacing: -.06em; }
+  /* Subject cut-out on top of the title (PNG with transparent background) */
+  .cutout { position: absolute; z-index: 3; left: 0; right: 0; bottom: 0; height: 62%; background: center bottom / contain no-repeat; }
+</style>
+</head>
+<body>
+<div class="carousel">
+
+  <!-- 01 · COVER: full-bleed photo + huge title; the subject (.cutout) can cover part of the title -->
+  <section class="slide">
+    <div class="bleed"><div class="ph">Strongest photo of the set (full-bleed)</div></div>
+    <div class="cover-title"><div class="kicker">AUTUMN</div><div class="big">LISBON</div></div>
+    <div class="cutout" style="/* background-image:url('photos/subject.png') */"></div>
+  </section>
+
+  <!-- 02 · One theme per slide: 3 rows -->
+  <section class="slide">
+    <div class="collage" style="grid-template-rows:1fr 1fr 1fr">
+      <div class="ph">Wide shot — theme 1</div>
+      <div class="ph">Detail — theme 1</div>
+      <div class="ph">Mood — theme 1</div>
+    </div>
+  </section>
+
+  <!-- 03 · 2 on top + 1 wide below -->
+  <section class="slide">
+    <div class="collage" style="grid-template-columns:1fr 1fr;grid-template-rows:1fr 1.3fr;gap:8px;background:#fff">
+      <div class="ph">Detail A — theme 2</div>
+      <div class="ph">Detail B — theme 2</div>
+      <div class="ph" style="grid-column:1/3">Wide shot — theme 2</div>
+    </div>
+  </section>
+
+  <!-- 04 · 1 big + 2 small -->
+  <section class="slide">
+    <div class="collage" style="grid-template-columns:1.6fr 1fr;grid-template-rows:1fr 1fr">
+      <div class="ph" style="grid-row:1/3">Strong vertical — theme 3</div>
+      <div class="ph">Detail — theme 3</div>
+      <div class="ph">Detail — theme 3</div>
+    </div>
+  </section>
+
+  <!-- 05 · Closing: photo + discreet CTA -->
+  <section class="slide">
+    <div class="bleed"><div class="ph">Closing photo</div></div>
+    <div class="scrim"></div>
+    <div class="content bottom" style="color:#fff">
+      <p class="lead"><b>More at @brand</b> · bookings open</p>
+    </div>
+  </section>
+
+</div>
+<script src="kit/carousel.js"></script>
+</body>
+</html>

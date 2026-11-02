@@ -1,109 +1,109 @@
-# Carrosséis para Instagram: skills para o Claude
+# Instagram carousels: skills for Claude
 
-Duas skills para o [Claude Code](https://claude.com/claude-code) (e para o Claude em claude.ai) que criam carrosséis de Instagram completos: roteiro, legenda, hashtags e os slides prontos a publicar, **em PNG ou como vídeo MP4 animado**.
+Two skills for [Claude Code](https://claude.com/claude-code) (and for Claude on claude.ai) that create complete Instagram carousels: script, caption, hashtags and the ready-to-post slides, **as PNGs or as an animated MP4 video**.
 
-| Skill | Comando | Entrega |
+| Skill | Command | Output |
 |---|---|---|
-| `carrosseis-instagram` | `/carrosseis-instagram` ou "faz-me um carrossel sobre…" | Roteiro + legenda + slides PNG 1080×1350 |
-| `carrossel-mp4` | `/carrossel-mp4` | O mesmo carrossel como **MP4 animado** estilo After Effects, com som |
+| `instagram-carousel` | `/instagram-carousel` or "make me a carousel about…" | Script + caption + 1080×1350 PNG slides |
+| `carousel-mp4` | `/carousel-mp4` | The same carousel as an After Effects-style **animated MP4**, with sound |
 
-## Exemplos (gerados pela skill)
+## Examples (rendered by the skill)
 
-**Educativo / listicle**: comparações, framework, CTA, com um disco de cor que liga os slides 1→2 e 4→5
-![Educativo](docs/A-educativo.png)
+**Educational / listicle**: comparisons, framework, CTA, with a pop-colour disc linking slides 1→2 and 4→5
+![Educational](docs/A-educational.png)
 
-**Fundo contínuo**: as manchas atravessam todos os slides e os produtos ficam em cima das divisões
-![Fundo contínuo](docs/C2-fundo-continuo.png)
+**Continuous background**: the blobs run across every slide and the products sit on top of the seams
+![Continuous background](docs/C2-continuous-background.png)
 
-**Cinematográfico**: uma palavra gigante por slide em fontes expressivas; "CARROS|SÉIS" e "Comuni|cou" atravessam a divisão
-![Cinematográfico](docs/E-cinematografico.png)
+**Cinematic**: one giant word per slide in expressive fonts; "CAROU|SELS" and "Communi|cated" cross the seam
+![Cinematic](docs/E-cinematic.png)
 
-**Template em série**: o mesmo layout, dados diferentes, com o título ajustado para ficar igual em todos os slides
-![Série](docs/D-serie.png)
+**Series template**: same layout, different data, with the title fitted to the same size on every slide
+![Series](docs/D-series.png)
 
-> As zonas com riscas são placeholders onde entram as tuas fotos. A skill não gera imagens.
+> The striped areas are placeholders for your photos. The skill does not generate images.
 
-## O que a skill sabe fazer
+## What the skill does
 
-- **5 arquétipos**: educativo/listicle · portefólio/photo dump · contínuo/panorâmico (incluindo fundo contínuo) · template em série · cinematográfico.
-- **Continuidade entre slides** obrigatória: o slide 2 mostra o fim de algo que começou no slide 1 (título partido, objeto na divisão, fundo contínuo, corte de cena).
-- **Sem "desliza →"/NEXT repetido**: a continuidade faz esse papel.
-- **16 pares de fontes** do Google Fonts por tom, com histórico, para não repetir as mesmas fontes.
-- **14 paletas "2 base + 1 pop"**: duas cores fazem o trabalho e uma terceira destaca-se em ≤ 10% do design (ex.: *charcoal black + royal blue + tangerine*), com o contraste medido.
-- **Revisão de design baseada nas Apple Human Interface Guidelines**:
-  - tamanhos mínimos convertidos para o feed (1pt ≈ 2,77px → texto ≥ 31px);
-  - contraste 4.5:1 / 3:1;
-  - os 8 princípios da Apple usados como filtro;
-  - "remove um acessório" no fim.
-- **Copy**: fórmulas de gancho, CTA com recompensa, legenda com keywords.
-- **Imagens**: tuas fotos, bancos livres (Unsplash/Pexels/Pixabay, sempre com autorização antes de descarregar) ou prompts prontos para IA. Nunca imagens de portefólios de terceiros.
+- **5 archetypes**: educational/listicle · portfolio/photo dump · continuous/panoramic (including continuous backgrounds) · series template · cinematic.
+- **Mandatory continuity between slides**: slide 2 shows the end of something that started on slide 1 (split title, object on the seam, continuous background, scene cut).
+- **No repeated "swipe →"/NEXT**: continuity does that job.
+- **16 Google Fonts pairings** by mood, with a history log so the same fonts don't repeat.
+- **14 "2 base + 1 pop" palettes**: two colours do the work and a third one stands out in ≤ 10% of the design (e.g. *charcoal black + royal blue + tangerine*), with measured contrast.
+- **Design review based on Apple's Human Interface Guidelines**:
+  - minimum sizes converted to the feed (1pt ≈ 2.77px → text ≥ 31px);
+  - 4.5:1 / 3:1 contrast;
+  - Apple's 8 principles used as a filter;
+  - "remove one accessory" at the end.
+- **Copy**: hook formulas, CTA with a reward, caption with keywords. Copy is written in the user's language.
+- **Images**: your photos, free stock libraries (Unsplash/Pexels/Pixabay, always with permission before downloading) or ready-made AI prompts. Never images from other people's portfolios.
 
-### `/carrossel-mp4`
-- Animação automática estilo After Effects:
-  - títulos letra a letra ou com "wipe";
-  - texto em cascata e autocolantes com ressalto;
-  - Ken Burns nas fotos;
-  - movimento de câmara com desfoque entre slides.
-- Afinação opcional com `data-anim` / `data-delay`.
-- Feed 4:5 (1080×1350) ou Reels 9:16 (`--reels`).
-- **Som que não se repete**: 5 variantes de whoosh, 3 de pop e 3 de impacto, geradas por síntese (sem direitos). Cada disparo tem tom, duração e pan estéreo ligeiramente diferentes, e a mesma variante nunca toca duas vezes seguidas.
-- **Openverse**: pesquisa de sons e música **CC0 / domínio público** (sem crédito obrigatório). Podes usar vários ficheiros por tipo, que rodam sem repetir.
-- **Sem ffmpeg**: o vídeo é renderizado pelo Chrome (GSAP + WebCodecs) e sai em H.264 + AAC, com o `moov` no início do ficheiro.
+### `/carousel-mp4`
+- Automatic After Effects-style animation:
+  - titles letter by letter or with a wipe;
+  - staggered text and stickers that pop in with overshoot;
+  - Ken Burns on photos;
+  - camera move with motion blur between slides.
+- Optional fine-tuning with `data-anim` / `data-delay`.
+- 4:5 feed (1080×1350) or 9:16 Reels (`--reels`).
+- **Sound that doesn't repeat**: 5 whoosh, 3 pop and 3 hit variants, synthesised (no rights). Each trigger has a slightly different pitch, length and stereo pan, and the same variant never plays twice in a row.
+- **Openverse**: search for **CC0 / public domain** sounds and music (no credit required). You can use several files per type, which rotate without repeats.
+- **No ffmpeg**: the video is rendered by Chrome (GSAP + WebCodecs) as H.264 + AAC, with the `moov` atom at the start of the file.
 
-## Instalação
+## Installation
 
 ### Claude Code
 ```bash
-git clone https://github.com/Yupzao/carrosseis-instagram-skill.git
-cp -r carrosseis-instagram-skill/skills/* ~/.claude/skills/
+git clone https://github.com/Yupzao/instagram-carousel-skill.git
+cp -r instagram-carousel-skill/skills/* ~/.claude/skills/
 ```
-No Windows (PowerShell):
+On Windows (PowerShell):
 ```powershell
-git clone https://github.com/Yupzao/carrosseis-instagram-skill.git
-Copy-Item -Recurse carrosseis-instagram-skill\skills\* $HOME\.claude\skills\
+git clone https://github.com/Yupzao/instagram-carousel-skill.git
+Copy-Item -Recurse instagram-carousel-skill\skills\* $HOME\.claude\skills\
 ```
-Depois, numa sessão nova, pede um carrossel ou escreve `/carrosseis-instagram` ou `/carrossel-mp4`.
+Then, in a new session, ask for a carousel or type `/instagram-carousel` or `/carousel-mp4`.
 
 ### claude.ai
-Comprime cada pasta de `skills/` num zip (a pasta tem de ficar na raiz do zip) e carrega-o em **Settings → Capabilities → Skills**.
-O render para PNG/MP4 precisa de Chrome local, por isso funciona melhor no Claude Code.
+Zip each folder in `skills/` (the folder must sit at the root of the zip) and upload it in **Settings → Capabilities → Skills**.
+Rendering to PNG/MP4 needs a local Chrome, so it works best in Claude Code.
 
-### Requisitos
-- **Node.js ≥ 22** (usa o `fetch` e o `WebSocket` nativos)
-- **Google Chrome** ou **Microsoft Edge** (deteta automaticamente; ou define `CHROME_PATH`)
-- Ligação à internet para Google Fonts, GSAP (cdnjs), mp4-muxer (jsDelivr) e Openverse
+### Requirements
+- **Node.js ≥ 22** (uses the native `fetch` and `WebSocket`)
+- **Google Chrome** or **Microsoft Edge** (detected automatically; or set `CHROME_PATH`)
+- Internet access for Google Fonts, GSAP (cdnjs), mp4-muxer (jsDelivr) and Openverse
 
-## Estrutura
+## Structure
 ```
 skills/
-├── carrosseis-instagram/
-│   ├── SKILL.md                  # fluxo e regras de ouro
-│   ├── references/               # arquétipos, continuidade, fontes, cores, copy, design, imagens, vídeo, apple-design
-│   ├── assets/kit/               # base.css + carousel.js (sistema de slides 1080×1350)
-│   ├── assets/exemplos/          # 6 templates de partida
+├── instagram-carousel/
+│   ├── SKILL.md                  # workflow and golden rules
+│   ├── references/               # archetypes, continuity, fonts, colors, copy, design, images, video, apple-design
+│   ├── assets/kit/               # base.css + carousel.js (1080×1350 slide system)
+│   ├── assets/examples/          # 6 starter templates
 │   └── scripts/
-│       ├── render.mjs            # HTML → PNG por slide (Chrome headless)
-│       ├── video.mjs             # HTML → MP4 animado com som
-│       ├── video/animate.js      # coreografia GSAP
-│       ├── video/encoder.html    # WebCodecs: H.264 + AAC, síntese dos efeitos sonoros
-│       ├── sons.mjs              # pesquisa/descarrega sons CC0 do Openverse
-│       └── contrast.mjs          # rácio de contraste WCAG
-└── carrossel-mp4/
-    └── SKILL.md                  # usa a skill acima e entrega MP4
+│       ├── render.mjs            # HTML → one PNG per slide (headless Chrome)
+│       ├── video.mjs             # HTML → animated MP4 with sound
+│       ├── video/animate.js      # GSAP choreography
+│       ├── video/encoder.html    # WebCodecs: H.264 + AAC, synthesised sound effects
+│       ├── sounds.mjs            # search/download CC0 sounds from Openverse
+│       └── contrast.mjs          # WCAG contrast ratio
+└── carousel-mp4/
+    └── SKILL.md                  # uses the skill above and delivers an MP4
 ```
 
-## Uso direto dos scripts
+## Using the scripts directly
 ```bash
-node skills/carrosseis-instagram/scripts/render.mjs carrossel.html png/
-node skills/carrosseis-instagram/scripts/video.mjs carrossel.html video.mp4 --reels --seed=7
-node skills/carrosseis-instagram/scripts/sons.mjs procurar "whoosh" --tipo=sfx
-node skills/carrosseis-instagram/scripts/contrast.mjs "#FFFFFF" "#2F4BDB" 46
+node skills/instagram-carousel/scripts/render.mjs carousel.html png/
+node skills/instagram-carousel/scripts/video.mjs carousel.html video.mp4 --reels --seed=7
+node skills/instagram-carousel/scripts/sounds.mjs search "whoosh" --type=sfx
+node skills/instagram-carousel/scripts/contrast.mjs "#FFFFFF" "#2F4BDB" 46
 ```
 
-## Licença
-[MIT](LICENSE): podes usar, modificar e distribuir livremente, mantendo o aviso de copyright.
+## License
+[MIT](LICENSE): free to use, modify and distribute, keeping the copyright notice.
 
-Recursos externos carregados em tempo de execução mantêm as suas próprias licenças: Google Fonts (OFL), GSAP (licença standard da GreenSock), mp4-muxer (MIT) e os sons do Openverse (só CC0 / domínio público).
+External resources loaded at runtime keep their own licences: Google Fonts (OFL), GSAP (GreenSock standard licence), mp4-muxer (MIT) and Openverse sounds (CC0 / public domain only).
 
 ---
-🤖 Criado com [Claude Code](https://claude.com/claude-code)
+🤖 Built with [Claude Code](https://claude.com/claude-code)

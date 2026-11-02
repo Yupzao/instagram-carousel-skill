@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Carousel — A. Educational</title>
+<!-- Font pairings no. 6 + 14 (see references/fonts.md). Change them for every carousel. -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,700;12..96,800&family=Fraunces:ital,opsz,wght@1,9..144,600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit/base.css">
+<style>
+  /* Brand */
+  :root {
+    --bg: #0c0c0d; --bg-alt: #eeece7; --ink: #ffffff; --ink-alt: #111111;
+    --accent: #3b5bff; --accent-ink: #ffffff;
+    --f-display: 'Bricolage Grotesque', sans-serif;
+    --f-body: 'Bricolage Grotesque', sans-serif;
+    --f-serif: 'Fraunces', serif;
+  }
+  /* Component for this carousel: a sample headline inside a "post" */
+  .mock { position: absolute; inset: 0; display: flex; flex-direction: column; justify-content: center;
+          padding: 34px; text-align: left; background: #fff; color: #111; }
+  .mock.dark { background: #161617; color: #fff; }
+  .mock .k { font: 600 31px/1 var(--f-body); opacity: .6; margin-bottom: 18px; }
+  .mock .h { font: 800 46px/1.02 var(--f-display); letter-spacing: -.03em; }
+  .mock.weak .h { font-weight: 500; font-size: 40px; letter-spacing: 0; }
+  /* 1→2 continuity: pop-colour disc centred on the seam (x = 1080px) */
+  .disc { border-radius: 50%; background: var(--accent); }
+</style>
+</head>
+<body>
+<div class="carousel">
+
+  <!-- 01 · COVER -->
+  <section class="slide texture">
+    <div class="hdr"><span>Nov 2026</span><span>@brand</span><span>Copywriting</span></div>
+    <div class="content">
+      <div class="stack">
+        <div class="t-serif">ignored <span class="pill" style="font-size:44px;vertical-align:middle;padding:10px 26px">v/s</span> read</div>
+        <div class="t-xl" style="font-size:200px">headlines</div>
+      </div>
+      <p class="lead muted">Same idea.<br>One gets ignored, <b style="opacity:1">the other gets saved.</b></p>
+    </div>
+  </section>
+
+  <!-- 02 · INTEREST -->
+  <section class="slide light">
+    <div class="hdr"><span>Nov 2026</span><span>@brand</span><span>Copywriting</span></div>
+    <div class="content" style="bottom:230px">
+      <div class="t-l">Talk about the result</div>
+      <div class="vs">
+        <div><span class="pill bad">AMATEUR</span>
+          <div class="frame"><div class="mock weak"><span class="k">Post</span><span class="h">Productivity tips for everyday life</span></div></div>
+          <span class="cap">Talks about the topic.<br>Sounds boring.</span></div>
+        <div><span class="pill good">PRO</span>
+          <div class="frame"><div class="mock dark"><span class="k">Post</span><span class="h">Finish work at 5pm. Every single day.</span></div></div>
+          <span class="cap">Talks about the result.<br>Sparks curiosity.</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 03 · VALUE -->
+  <section class="slide texture">
+    <div class="hdr"><span>Nov 2026</span><span>@brand</span><span>Copywriting</span></div>
+    <div class="content">
+      <div class="t-l">Use numbers</div>
+      <div class="vs">
+        <div><span class="pill bad">AMATEUR</span>
+          <div class="frame"><div class="mock weak"><span class="k">Post</span><span class="h">Ways to save money</span></div></div>
+          <span class="cap">Vague</span></div>
+        <div><span class="pill good">PRO</span>
+          <div class="frame"><div class="mock"><span class="k">Post</span><span class="h">7 cuts that save $200 a month</span></div></div>
+          <span class="cap">Concrete and measurable</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 04 · VALUE -->
+  <section class="slide light">
+    <div class="hdr"><span>Nov 2026</span><span>@brand</span><span>Copywriting</span></div>
+    <div class="content">
+      <div class="t-l">Cut words</div>
+      <p class="lead" style="max-width:820px"><s style="opacity:.55">In this post we'll look at some of the best ways to</s> <b>Write headlines</b> <s style="opacity:.55">that people will</s> <b>that stop the scroll.</b></p>
+      <p class="small muted">≤ 6 words per headline. Read it aloud and cut.</p>
+    </div>
+  </section>
+
+  <!-- 05 · PAYOFF (framework) -->
+  <section class="slide light">
+    <div class="hdr"><span>Nov 2026</span><span>@brand</span><span>Copywriting</span></div>
+    <div class="content">
+      <div class="t-l">framework</div>
+      <div class="num-grid"><div>1</div><div>2</div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div><div>9</div><div>10</div></div>
+      <div class="vs" style="grid-template-columns:repeat(4,1fr);gap:20px;text-align:center">
+        <span class="small"><b>1</b><br>Hook</span><span class="small"><b>2–5</b><br>Interest and value</span>
+        <span class="small"><b>6–9</b><br>Payoff</span><span class="small"><b>10</b><br>CTA</span>
+      </div>
+      <p class="lead">Every slide <span class="hl">earns the next.</span></p>
+    </div>
+  </section>
+
+  <!-- 06 · CTA -->
+  <section class="slide accent">
+    <div class="hdr"><span>Nov 2026</span><span>@brand</span><span>Copywriting</span></div>
+    <div class="content">
+      <div class="lead">comment</div>
+      <div class="t-xl" style="font-size:150px">‘HEADLINES’</div>
+      <p class="lead" style="max-width:860px">and I'll send you <b>50 headline formulas</b>, tested and ready to copy.</p>
+      <span class="pill" style="margin-top:20px">🔖 Save for later</span>
+    </div>
+  </section>
+
+  <!-- 1→2 continuity: pop-colour disc on the seam, at the bottom. Slide 2 shows the other half. -->
+  <div class="span disc" style="left:820px; top:1110px; width:520px; height:520px"></div>
+  <!-- 4→5 continuity: the same disc links two light slides again -->
+  <div class="span disc" style="left:4060px; top:1130px; width:520px; height:520px"></div>
+
+</div>
+<script src="kit/carousel.js"></script>
+</body>
+</html>

@@ -1,0 +1,242 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>encoder</title>
+<!-- Encodes JPEG frames into MP4 (H.264) and mixes the audio (AAC) with WebCodecs + mp4-muxer. Driven by video.mjs. -->
+<script src="https://cdn.jsdelivr.net/npm/mp4-muxer@5.1.3/build/mp4-muxer.min.js"></script>
+<script>
+  const SR = 48000;
+  let muxer, enc, fps, out, err = null;
+
+  // ---------- audio ----------
+  const decode = async (b64) => {
+    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
+    return new OfflineAudioContext(2, SR, SR).decodeAudioData(bytes.buffer);
+  };
+
+  // Seeded randomness: the same --seed always gives the same sound; another seed, another mix.
+  let rnd = Math.random;
+  const seeded = (a) => () => {
+    a |= 0; a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+  const vary = (x, amount) => x * (1 + (rnd() * 2 - 1) * amount); // ±amount
+  const pick = (arr) => arr[Math.floor(rnd() * arr.length)];
+
+  // Shuffle bag: walks the shuffled variants and never plays the same one twice in a row.
+  const bag = (items) => {
+    let queue = [], last = null;
+    return () => {
+      if (items.length === 1) return items[0];
+      if (!queue.length) {
+        queue = [...items].sort(() => rnd() - 0.5);
+        if (queue[0] === last) queue.push(queue.shift());
+      }
+      return (last = queue.shift());
+    };
+  };
+
+  const noise = (ctx, len) => {
+    const buf = ctx.createBuffer(1, Math.ceil(SR * len), SR), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = rnd() * 2 - 1;
+    const s = ctx.createBufferSource(); s.buffer = buf; return s;
+  };
+  // Envelope + stereo pan following the camera (right to left, like the content)
+  const env = (ctx, t, len, peak, gain, panFrom = 0, panTo = 0) => {
+    const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
+    g.gain.exponentialRampToValueAtTime(gain, t + len * peak); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    const p = ctx.createStereoPanner(); p.pan.setValueAtTime(panFrom, t); p.pan.linearRampToValueAtTime(panTo, t + len);
+    g.connect(p).connect(ctx.destination); return g;
+  };
+
+  // Built-in effects, synthesised (no rights, no credit). Each type has several variants
+  // and every trigger has a slightly different length, pitch and volume.
+  const WHOOSH = {
+    rise(ctx, t, gain) { // sweep that rises and settles
+      const len = vary(0.75, 0.2), s = noise(ctx, len), f = ctx.createBiquadFilter();
+      f.type = 'bandpass'; f.Q.value = vary(1.4, 0.3);
+      f.frequency.setValueAtTime(vary(250, 0.3), t); f.frequency.exponentialRampToValueAtTime(vary(3200, 0.25), t + len * 0.55);
+      f.frequency.exponentialRampToValueAtTime(vary(500, 0.3), t + len);
+      s.connect(f).connect(env(ctx, t, len, 0.5, gain * 0.9, 0.6, -0.6)); s.start(t);
+    },
+    fall(ctx, t, gain) { // sweep from high to low
+      const len = vary(0.7, 0.2), s = noise(ctx, len), f = ctx.createBiquadFilter();
+      f.type = 'bandpass'; f.Q.value = vary(1.8, 0.3);
+      f.frequency.setValueAtTime(vary(4200, 0.2), t); f.frequency.exponentialRampToValueAtTime(vary(280, 0.3), t + len);
+      s.connect(f).connect(env(ctx, t, len, 0.35, gain * 0.85, 0.7, -0.5)); s.start(t);
+    },
+    whip(ctx, t, gain) { // short and dry
+      const len = vary(0.32, 0.2), s = noise(ctx, len), f = ctx.createBiquadFilter();
+      f.type = 'bandpass'; f.Q.value = vary(3, 0.3);
+      f.frequency.setValueAtTime(vary(900, 0.3), t + len * 0.2); f.frequency.exponentialRampToValueAtTime(vary(5500, 0.2), t + len * 0.7);
+      s.connect(f).connect(env(ctx, t + len * 0.2, len, 0.6, gain, 0.8, -0.8)); s.start(t + len * 0.2);
+    },
+    air(ctx, t, gain) { // long, soft, airy
+      const len = vary(1.05, 0.15), s = noise(ctx, len), f = ctx.createBiquadFilter(), h = ctx.createBiquadFilter();
+      f.type = 'lowpass'; f.frequency.setValueAtTime(vary(600, 0.3), t); f.frequency.exponentialRampToValueAtTime(vary(7000, 0.2), t + len * 0.5);
+      f.frequency.exponentialRampToValueAtTime(vary(900, 0.3), t + len);
+      h.type = 'highpass'; h.frequency.value = vary(250, 0.3);
+      s.connect(h).connect(f).connect(env(ctx, t - 0.1, len, 0.55, gain * 0.6, 0.5, -0.5)); s.start(Math.max(0, t - 0.1));
+    },
+    riser(ctx, t, gain) { // rises with a tone underneath
+      const len = vary(0.8, 0.15), s = noise(ctx, len), f = ctx.createBiquadFilter(), o = ctx.createOscillator();
+      f.type = 'bandpass'; f.Q.value = 2; f.frequency.setValueAtTime(vary(400, 0.3), t); f.frequency.exponentialRampToValueAtTime(vary(6000, 0.2), t + len * 0.85);
+      o.type = 'triangle'; o.frequency.setValueAtTime(vary(180, 0.3), t); o.frequency.exponentialRampToValueAtTime(vary(720, 0.3), t + len * 0.85);
+      const og = ctx.createGain(); og.gain.value = 0.12;
+      const dest = env(ctx, t - 0.15, len, 0.85, gain * 0.75, 0.4, -0.7);
+      s.connect(f).connect(dest); o.connect(og).connect(dest);
+      s.start(Math.max(0, t - 0.15)); o.start(Math.max(0, t - 0.15)); o.stop(t + len);
+    },
+  };
+  const POP = {
+    drop(ctx, t, gain) {
+      const o = ctx.createOscillator(); o.type = 'sine'; const f0 = vary(950, 0.25);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.4, t + 0.09);
+      o.connect(env(ctx, t, vary(0.14, 0.2), 0.06, gain * 0.55, vary(0, 0.3), 0)); o.start(t); o.stop(t + 0.2);
+    },
+    blip(ctx, t, gain) { // two quick tones
+      [0, 0.055].forEach((d, i) => {
+        const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.value = vary(i ? 1320 : 880, 0.15);
+        o.connect(env(ctx, t + d, 0.07, 0.1, gain * 0.35)); o.start(t + d); o.stop(t + d + 0.09);
+      });
+    },
+    click(ctx, t, gain) { // short click
+      const s = noise(ctx, 0.05), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = vary(2500, 0.3); f.Q.value = 4;
+      s.connect(f).connect(env(ctx, t, 0.05, 0.05, gain * 0.9)); s.start(t);
+    },
+  };
+  const HIT = {
+    low(ctx, t, gain) {
+      const o = ctx.createOscillator(); o.type = 'sine'; const f0 = vary(120, 0.2);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.4, t + 0.35);
+      o.connect(env(ctx, t, vary(0.5, 0.2), 0.02, gain * 0.8)); o.start(t); o.stop(t + 0.6);
+    },
+    punch(ctx, t, gain) { // low hit + attack click
+      HIT.low(ctx, t, gain * 0.8);
+      const s = noise(ctx, 0.04), f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 3000;
+      s.connect(f).connect(env(ctx, t, 0.04, 0.05, gain * 0.4)); s.start(t);
+    },
+    tom(ctx, t, gain) { // more open resonant tom
+      const o = ctx.createOscillator(); o.type = 'triangle'; const f0 = vary(220, 0.25);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.7, t + 0.5);
+      o.connect(env(ctx, t, vary(0.7, 0.15), 0.02, gain * 0.45)); o.start(t); o.stop(t + 0.8);
+    },
+  };
+  const BUILTIN = { whoosh: WHOOSH, pop: POP, hit: HIT };
+
+  // spec: { duration, cues:[{t,type}], sfx:{whoosh?:[b64…],pop?:[…],hit?:[…]}|'builtin'|null, music?:b64,
+  //         musicVolume, sfxVolume, seed? }
+  const renderAudio = async (spec) => {
+    rnd = seeded(spec.seed ?? Date.now());
+    const ctx = new OfflineAudioContext(2, Math.ceil(spec.duration * SR), SR);
+    const next = {}; // type → function returning the next variant
+    if (spec.sfx && spec.sfx !== 'builtin') {
+      for (const [k, list] of Object.entries(spec.sfx)) {
+        const bufs = []; for (const b64 of [].concat(list)) bufs.push(await decode(b64));
+        if (bufs.length) next[k] = bag(bufs.map((b) => ({ file: b })));
+      }
+    }
+    for (const k of Object.keys(BUILTIN)) next[k] ||= bag(Object.values(BUILTIN[k]).map((fn) => ({ fn })));
+
+    for (const { t, type } of spec.cues) {
+      if (!spec.sfx || !next[type]) continue;
+      const v = next[type]();
+      const gain = vary(spec.sfxVolume, 0.12);
+      if (v.file) {
+        const s = ctx.createBufferSource(); s.buffer = v.file;
+        s.playbackRate.value = vary(1, 0.08); // slightly different pitch on every trigger
+        // the whoosh is centred on the move: it starts a little early
+        const at = Math.max(0, type === 'whoosh' ? t - 0.12 : t);
+        const g = ctx.createGain(); g.gain.value = gain;
+        const p = ctx.createStereoPanner(), dur = v.file.duration / s.playbackRate.value;
+        p.pan.setValueAtTime(type === 'whoosh' ? 0.5 : 0, at); p.pan.linearRampToValueAtTime(type === 'whoosh' ? -0.5 : 0, at + dur);
+        s.connect(g).connect(p).connect(ctx.destination);
+        s.start(at);
+      } else v.fn(ctx, Math.max(0.001, t), gain);
+    }
+    if (spec.music) {
+      const m = await decode(spec.music);
+      const s = ctx.createBufferSource(); s.buffer = m; s.loop = m.duration < spec.duration;
+      const g = ctx.createGain(), v = spec.musicVolume, end = spec.duration;
+      g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(v, 0.8);
+      g.gain.setValueAtTime(v, Math.max(0.9, end - 1.5)); g.gain.linearRampToValueAtTime(0, end);
+      s.connect(g).connect(ctx.destination); s.start(0);
+    }
+    return ctx.startRendering();
+  };
+
+  const encodeAudio = async (buffer) => {
+    let cfg = { codec: 'mp4a.40.2', sampleRate: SR, numberOfChannels: 2, bitrate: 192000 };
+    let codec = 'aac';
+    if (!(await AudioEncoder.isConfigSupported(cfg)).supported) {
+      cfg = { codec: 'opus', sampleRate: SR, numberOfChannels: 2, bitrate: 160000 }; codec = 'opus';
+      if (!(await AudioEncoder.isConfigSupported(cfg)).supported) throw new Error('No audio encoder (AAC/Opus) in this Chrome.');
+    }
+    const chunks = [];
+    const ae = new AudioEncoder({ output: (c, m) => chunks.push([c, m]), error: (e) => { err = String(e); } });
+    ae.configure(cfg);
+    const L = buffer.getChannelData(0), R = buffer.getChannelData(1), block = 1024;
+    for (let i = 0; i < buffer.length; i += block) {
+      const n = Math.min(block, buffer.length - i);
+      const data = new Float32Array(n * 2); data.set(L.subarray(i, i + n), 0); data.set(R.subarray(i, i + n), n);
+      const ad = new AudioData({ format: 'f32-planar', sampleRate: SR, numberOfFrames: n, numberOfChannels: 2, timestamp: Math.round(i / SR * 1e6), data });
+      ae.encode(ad); ad.close();
+    }
+    await ae.flush();
+    return { codec, chunks };
+  };
+
+  // ---------- video ----------
+  window.init = async (w, h, rate, bitrate, audioSpec) => {
+    fps = rate;
+    const cfg = { codec: 'avc1.640028', width: w, height: h, bitrate, framerate: fps, avc: { format: 'avc' } };
+    if (!(await VideoEncoder.isConfigSupported(cfg)).supported) throw new Error('This Chrome does not support H.264 encoding (WebCodecs).');
+
+    let audio = null;
+    if (audioSpec && (audioSpec.sfx || audioSpec.music)) audio = await encodeAudio(await renderAudio(audioSpec));
+
+    muxer = new Mp4Muxer.Muxer({
+      target: new Mp4Muxer.ArrayBufferTarget(),
+      video: { codec: 'avc', width: w, height: h, frameRate: fps },
+      ...(audio ? { audio: { codec: audio.codec, numberOfChannels: 2, sampleRate: SR } } : {}),
+      fastStart: 'in-memory',
+      firstTimestampBehavior: 'offset',
+    });
+    if (audio) for (const [c, m] of audio.chunks) muxer.addAudioChunk(c, m);
+    enc = new VideoEncoder({ output: (chunk, meta) => muxer.addVideoChunk(chunk, meta), error: (e) => { err = String(e); } });
+    enc.configure(cfg);
+    return audio ? `audio ${audio.codec}` : 'no audio';
+  };
+
+  window.addFrame = async (b64, i) => {
+    const blob = await (await fetch('data:image/jpeg;base64,' + b64)).blob();
+    const bmp = await createImageBitmap(blob);
+    const frame = new VideoFrame(bmp, { timestamp: Math.round(i * 1e6 / fps), duration: Math.round(1e6 / fps) });
+    enc.encode(frame, { keyFrame: i % (fps * 2) === 0 });
+    frame.close(); bmp.close();
+    // wait for the encoder with the 'dequeue' event (timers are throttled in background tabs)
+    while (enc.encodeQueueSize > 4) await new Promise((r) => enc.addEventListener('dequeue', r, { once: true }));
+    if (err) throw new Error(err);
+    return 'ok';
+  };
+
+  window.finish = async () => {
+    await enc.flush();
+    muxer.finalize();
+    out = new Uint8Array(muxer.target.buffer);
+    return out.length;
+  };
+
+  window.chunk = (start, len) => {
+    const a = out.subarray(start, start + len);
+    let s = '';
+    for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000));
+    return btoa(s);
+  };
+</script>
+</head>
+<body></body>
+</html>

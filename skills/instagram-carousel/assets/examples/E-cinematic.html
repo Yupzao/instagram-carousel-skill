@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Carousel — E. Cinematic</title>
+<!-- Expressive combination: Bodoni Moda + Playfair Display italic + Pinyon Script, body in DM Sans -->
+<link href="https://fonts.googleapis.com/css2?family=Bodoni+Moda:opsz,wght@6..96,700;6..96,900&family=Playfair+Display:ital,wght@1,700&family=Pinyon+Script&family=DM+Sans:wght@500;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit/base.css">
+<style>
+  :root {
+    --bg: #120e0b; --ink: #ede3d1;
+    --f-display: 'Bodoni Moda', serif;
+    --f-italic: 'Playfair Display', serif;
+    --f-script: 'Pinyon Script', cursive;
+    --f-body: 'DM Sans', sans-serif;
+    --grade: linear-gradient(170deg, rgba(255, 176, 96, .42), rgba(18, 38, 44, .55));
+  }
+  /* Sample "photos": replace with .media with background-image:url('photos/x.jpg') */
+  .scene { background: radial-gradient(55% 45% at 50% 55%, #6b4a33, #2a1d15 60%, #0d0907); }
+  .scene .ph { background: none; outline: none; align-items: start; padding-top: 200px; color: #ede3d1; opacity: .6; }
+  .body { font: 500 34px/1.35 var(--f-body); max-width: 560px; }
+  .eyebrow { font: 500 44px/1 var(--f-body); letter-spacing: .02em; }
+  .bodoni { font: 900 300px/.82 var(--f-display); text-transform: uppercase; letter-spacing: -.02em; }
+  .italic { font: italic 700 220px/.9 var(--f-italic); }
+</style>
+</head>
+<body>
+<div class="carousel">
+
+  <!-- 01 · COVER: centred subject, giant title that continues on slide 2 -->
+  <section class="slide">
+    <div class="bleed scene"><div class="ph">Photo: character sitting in a leather armchair, looking at the camera (4:5)</div></div>
+    <div class="grade"></div><div class="vignette"></div><div class="texture bleed"></div>
+    <span class="eyebrow" style="position:absolute;left:120px;top:740px">Social Media</span>
+    <p class="small" style="position:absolute;left:120px;top:1110px;opacity:.85">Design that communicates · @brand</p>
+  </section>
+
+  <!-- 02 · DETAIL -->
+  <section class="slide">
+    <div class="bleed scene" style="background-position:30% 50%"><div class="ph">Photo: medium shot, the character looks to the right</div></div>
+    <div class="grade"></div><div class="vignette"></div><div class="texture bleed"></div>
+    <div class="content left top" style="top:300px;gap:22px">
+      <div class="outline nowrap" data-fit="detail" style="width:100%;font:900 200px/.85 var(--f-display);text-transform:uppercase;--stroke:#ede3d1">Detail</div>
+      <p class="body">Clients feel the care before they read a single word.</p>
+    </div>
+  </section>
+
+  <!-- 03 · COMMUNICATED (the title starts on 3 and ends on 4) -->
+  <section class="slide">
+    <div class="bleed scene"><div class="ph">Photo: close-up of hands on the desk</div></div>
+    <div class="grade"></div><div class="vignette"></div><div class="texture bleed"></div>
+    <div class="content left bottom" style="bottom:120px"><p class="body">It's not about looking pretty. It's about being understood at first glance.</p></div>
+  </section>
+
+  <!-- 04 · SHHH -->
+  <section class="slide">
+    <div class="bleed scene"><div class="ph">Photo: the character with a finger on their lips</div></div>
+    <div class="grade"></div><div class="vignette"></div><div class="texture bleed"></div>
+    <div class="content top" style="top:700px;gap:10px">
+      <div class="t-script" style="font-size:230px">Shhh…</div>
+      <p class="body" style="text-align:center">Good design doesn't shout.</p>
+    </div>
+  </section>
+
+  <!-- 05 · CTA -->
+  <section class="slide">
+    <div class="bleed scene"><div class="ph">Photo: wide shot of the office, character from behind</div></div>
+    <div class="grade"></div><div class="vignette"></div><div class="texture bleed"></div>
+    <div class="content" style="gap:30px">
+      <div class="bodoni" style="font-size:170px">Silence</div>
+      <p class="body" style="text-align:center">communicates too. Save this post and talk to me: <b>@brand</b></p>
+    </div>
+  </section>
+
+  <!-- 1→2 continuity: split title "CAROU|SELS" (seam at 1080px) -->
+  <div class="span bodoni nowrap" style="left:110px; top:800px; color:var(--ink)">Carousels</div>
+  <!-- 3→4 continuity: "Communi|cated" in italics (seam at 3240px) -->
+  <div class="span italic nowrap" style="left:2600px; top:240px; font-size:200px; color:var(--ink)">Communicated</div>
+
+</div>
+<script src="kit/carousel.js"></script>
+</body>
+</html>

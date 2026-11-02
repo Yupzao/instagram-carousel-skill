@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Carousel — D. Series</title>
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Inter:wght@500;600;700;800&family=Instrument+Serif:ital@1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit/base.css">
+<style>
+  :root { --accent: #d71920; --accent-ink: #ffffff; }
+  /* Poster template: photo on top, colour block below. Identical on every slide. */
+  .poster .photo { position: absolute; left: 0; right: 0; top: 0; height: 60%; }
+  .poster .block { position: absolute; left: 0; right: 0; bottom: 0; height: 40%; background: var(--accent); color: var(--accent-ink);
+                   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px; text-align: center; padding: 0 var(--pad); }
+  .poster .meta  { font: 700 31px/1 var(--f-body); letter-spacing: .06em; text-transform: uppercase; }
+  .poster .title { width: 100%; }
+  .poster .line  { display: block; width: 100%; white-space: nowrap; font: 400 130px/1 var(--f-cond); padding-top: .06em; text-transform: uppercase; }
+  .poster .versus { display: block; font: italic 400 60px/1 var(--f-serif); margin: -6px 0 -2px; }
+  .poster .crest { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); z-index: 2;
+                   font: 700 31px/1 var(--f-body); color: #fff; background: rgba(0,0,0,.35); padding: 10px 20px; border-radius: 999px; }
+</style>
+</head>
+<body>
+<div class="carousel">
+
+  <section class="slide poster">
+    <div class="photo"><div class="ph">Team photo / item 1</div></div>
+    <div class="crest">CREST</div>
+    <div class="block">
+      <div class="meta">National U19 League · Round 11</div>
+      <div class="title"><span class="line" data-fit="teams">Northside Athletic</span><span class="versus">vs</span><span class="line" data-fit="teams">Green Valley United</span></div>
+      <div class="meta">31.10.2026 | 3:00 PM | Municipal Stadium</div>
+    </div>
+  </section>
+
+  <section class="slide poster">
+    <div class="photo"><div class="ph">Team photo / item 2</div></div>
+    <div class="crest">CREST</div>
+    <div class="block">
+      <div class="meta">National U17 League · Round 11</div>
+      <div class="title"><span class="line" data-fit="teams">Riverside Sporting Club</span><span class="versus">vs</span><span class="line" data-fit="teams">Green Valley United</span></div>
+      <div class="meta">01.11.2026 | 11:00 AM | Riverside Ground</div>
+    </div>
+  </section>
+
+</div>
+<script src="kit/carousel.js"></script>
+</body>
+</html>
