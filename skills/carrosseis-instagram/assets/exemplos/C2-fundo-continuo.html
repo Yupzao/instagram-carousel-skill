@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="pt">
+<head>
+<meta charset="utf-8">
+<title>Carrossel — C2. Fundo contínuo</title>
+<!-- Par de fontes n.º 9 (ver references/fontes.md) -->
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Outfit:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="kit/base.css">
+<style>
+  :root {
+    --pink: #f6b8d6; --blue: #9fdcef; --plum: #2c1440;
+    --ink: var(--plum);
+    --f-display: 'DM Serif Display', serif;
+    --f-body: 'Outfit', sans-serif;
+  }
+  /* Produtos recortados (substitui .ph por .cutout com PNG transparente) */
+  .product { border-radius: 40px; overflow: hidden; box-shadow: 0 30px 60px rgba(44, 20, 64, .18); }
+  .product .ph { background-color: rgba(255, 255, 255, .55); color: var(--plum); }
+  .name { font: 400 72px/1 var(--f-display); }
+  .desc { font: 400 34px/1.35 var(--f-body); max-width: 520px; }
+  .big  { font: 400 168px/.92 var(--f-display); letter-spacing: -.01em; }
+  .tag  { font: 700 31px/1 var(--f-body); letter-spacing: .08em; text-transform: uppercase; }
+</style>
+</head>
+<body>
+<div class="carousel">
+
+  <!-- Fundo contínuo: um SVG com a largura total (4 × 1080). As manchas atravessam as junções 1080/2160/3240. -->
+  <div class="backdrop">
+    <svg viewBox="0 0 4320 1350" preserveAspectRatio="none">
+      <rect width="4320" height="1350" style="fill:var(--pink)"/>
+      <path style="fill:var(--blue)" d="M0 0 H760 C900 160 1240 120 1380 300 C1520 480 1320 700 1080 760 C820 820 520 700 360 900 C220 1080 120 1250 0 1350 Z"/>
+      <path style="fill:var(--blue)" d="M1900 1350 C1960 1120 2260 1060 2300 820 C2340 600 2080 470 2240 300 C2380 150 2700 220 2860 120 C2960 60 3000 0 3000 0 H3380 C3320 220 3500 420 3360 620 C3200 850 2860 760 2700 980 C2580 1150 2600 1300 2560 1350 Z"/>
+      <circle cx="4160" cy="1180" r="380" style="fill:var(--blue)"/>
+      <g fill="#fff" opacity=".8"><circle cx="980" cy="980" r="10"/><circle cx="2090" cy="260" r="14"/><circle cx="3260" cy="1040" r="9"/><circle cx="3900" cy="200" r="12"/></g>
+    </svg>
+  </div>
+
+  <!-- 01 · CAPA -->
+  <section class="slide clear">
+    <div class="content left top" style="top:150px">
+      <span class="tag">Coleção · @marca</span>
+      <div class="big">Produtos<br>de Verão</div>
+    </div>
+    <div style="position:absolute;left:80px;bottom:120px;width:560px;height:620px" class="product"><div class="ph">Foto: pessoa com produto (recorte)</div></div>
+  </section>
+
+  <!-- 02 -->
+  <section class="slide clear">
+    <div class="content left" style="left:400px;right:120px;top:200px;bottom:auto;gap:20px">
+      <div class="name">Sérum Glow</div>
+      <p class="desc">Vitamina C e niacinamida. Pele luminosa em 14 dias.</p>
+    </div>
+    <div class="content left" style="left:400px;right:120px;top:auto;bottom:220px;gap:20px">
+      <div class="name">Bruma Fresh</div>
+      <p class="desc">Hidrata em segundos. Cabe em qualquer mala.</p>
+    </div>
+  </section>
+
+  <!-- 03 -->
+  <section class="slide clear">
+    <div class="content left" style="left:520px;top:200px;bottom:auto;gap:20px">
+      <div class="name">Óleo Solar</div>
+      <p class="desc">FPS 30, acabamento seco, cheiro a coco.</p>
+    </div>
+    <div class="content left" style="left:520px;top:auto;bottom:220px;gap:20px">
+      <div class="name">Bálsamo Lips</div>
+      <p class="desc">Cor suave e proteção UV para os lábios.</p>
+    </div>
+  </section>
+
+  <!-- 04 · CTA -->
+  <section class="slide clear">
+    <div class="content left top" style="top:150px;right:420px">
+      <div class="big" style="font-size:132px">Encontra tudo no nosso site</div>
+      <span class="tag">link na bio</span>
+    </div>
+    <div style="position:absolute;right:60px;bottom:100px;width:440px;height:560px" class="product"><div class="ph">Foto: pessoa (recorte)</div></div>
+  </section>
+
+  <!-- Produtos em cima das junções: continuidade 1→2, 2→3 e 3→4 -->
+  <div class="span product" style="left:900px;  top:150px; width:360px; height:470px"><div class="ph">Produto 1</div></div>
+  <div class="span product" style="left:900px;  top:780px; width:360px; height:420px"><div class="ph">Produto 2</div></div>
+  <div class="span product" style="left:2000px; top:150px; width:320px; height:470px"><div class="ph">Produto 3</div></div>
+  <div class="span product" style="left:2000px; top:780px; width:320px; height:420px"><div class="ph">Produto 4</div></div>
+
+</div>
+<script src="kit/carousel.js"></script>
+</body>
+</html>
