@@ -100,5 +100,10 @@ node skills/carrosseis-instagram/scripts/sons.mjs procurar "whoosh" --tipo=sfx
 node skills/carrosseis-instagram/scripts/contrast.mjs "#FFFFFF" "#2F4BDB" 46
 ```
 
+## Licença
+[MIT](LICENSE): podes usar, modificar e distribuir livremente, mantendo o aviso de copyright.
+
+Recursos externos carregados em tempo de execução mantêm as suas próprias licenças: Google Fonts (OFL), GSAP (licença standard da GreenSock), mp4-muxer (MIT) e os sons do Openverse (só CC0 / domínio público).
+
 ---
 🤖 Criado com [Claude Code](https://claude.com/claude-code)
