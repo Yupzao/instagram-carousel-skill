@@ -5,8 +5,9 @@
 //   --reels               1080×1920 (carousel centred); default 1080×1350 (4:5 feed)
 //   --landscape           1920×1080 (16:9); only with a custom choreography (window.__scene)
 //   --fps=30 --bitrate=12 (Mbps)
-//   --sfx=builtin|<folder> effects: 'builtin' (synthesised, default) or a folder with whoosh*.*, pop*.*, hit*.* (mp3/wav/ogg).
-//                         Several per type (whoosh-1.mp3, whoosh-2.wav…) rotate without back-to-back repeats.
+//   --sfx=<folder>|builtin|none  effects from a sample folder: whoosh, pop, hit, impact, stutter, tick, type, riser, shimmer
+//                         (whoosh-1.wav, impact-2.mp3…; several per type rotate without back-to-back repeats; missing types
+//                         are synthesised). Default: $CAROUSEL_SFX or ~/sfx/kit-motion if it exists, else 'builtin' (synthesised).
 //   --seed=42             fixes the random sound variation (without a seed, every render sounds different)
 //   --music=<file>        background music (fade in/out; loops if short)
 //   --sfx-volume=0.8 --music-volume=0.35   --mute (no audio)
@@ -133,15 +134,18 @@ try {
   let audioSpec = null;
   if (!flags.mute) {
     const b64 = (f) => fs.readFileSync(f).toString('base64');
-    let sfx = flags.sfx === undefined || flags.sfx === true || flags.sfx === 'builtin' ? 'builtin' : null;
-    if (flags.sfx && flags.sfx !== true && flags.sfx !== 'builtin' && flags.sfx !== 'none') {
+    // Default: a real sample library (synthesised effects read as "AI"): $CAROUSEL_SFX or ~/sfx/kit-motion if present
+    const kit = [process.env.CAROUSEL_SFX, path.join(os.homedir(), 'sfx', 'kit-motion')].find((d) => d && fs.existsSync(d));
+    if (flags.sfx === undefined || flags.sfx === true) flags.sfx = kit || 'builtin';
+    let sfx = flags.sfx === 'builtin' ? 'builtin' : null;
+    if (flags.sfx !== 'builtin' && flags.sfx !== 'none') {
       const dir = path.resolve(String(flags.sfx));
       sfx = {};
       for (const f of fs.readdirSync(dir).sort()) {
         const m = f.match(/^(whoosh|pop|hit|impact|stutter|tick|type|riser|shimmer)[-_ ]?[\w-]*\.(mp3|wav|ogg|m4a|flac)$/i);
         if (m) (sfx[m[1].toLowerCase()] ||= []).push(b64(path.join(dir, f)));
       }
-      console.log('  sounds:', Object.entries(sfx).map(([k, v]) => `${k}×${v.length}`).join(', ') || '(none in the folder; using the built-in ones)');
+      console.log('  sounds:', path.basename(dir), '→', Object.entries(sfx).map(([k, v]) => `${k}×${v.length}`).join(', ') || '(none in the folder; using the built-in ones)');
       if (!Object.keys(sfx).length) sfx = 'builtin';
     }
     audioSpec = {

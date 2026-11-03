@@ -238,7 +238,14 @@
     const next = {}; // type → function returning the next variant
     if (spec.sfx && spec.sfx !== 'builtin') {
       for (const [k, list] of Object.entries(spec.sfx)) {
-        const bufs = []; for (const b64 of [].concat(list)) bufs.push(await decode(b64));
+        const bufs = [];
+        for (const b64 of [].concat(list)) {
+          // library samples are mastered loud: normalise each to the synthesised effects' peak so the bus doesn't clip
+          const b = await decode(b64);
+          let pk = 0; for (let c = 0; c < b.numberOfChannels; c++) for (const x of b.getChannelData(c)) pk = Math.max(pk, Math.abs(x));
+          if (pk > 0.5) for (let c = 0; c < b.numberOfChannels; c++) { const d = b.getChannelData(c); for (let i = 0; i < d.length; i++) d[i] *= 0.5 / pk; }
+          bufs.push(b);
+        }
         if (bufs.length) next[k] = bag(bufs.map((b) => ({ file: b })));
       }
     }
@@ -252,15 +259,19 @@
       if (v.file) {
         const s = ctx.createBufferSource(); s.buffer = v.file;
         s.playbackRate.value = vary(1, 0.08); // slightly different pitch on every trigger
-        const dur = v.file.duration / s.playbackRate.value;
+        // typing samples (a short burst of keys) are sliced: one random keystroke per typed letter
+        const slice = type === 'type' ? Math.min(0.09, v.file.duration) : 0;
+        const offset = slice ? rnd() * Math.max(0, v.file.duration - slice) : 0;
+        const dur = (slice || v.file.duration) / s.playbackRate.value;
         // whooshes are centred on the move (start a little early); risers END on the cue
         const at = Math.max(0, type === 'whoosh' ? t - 0.12 : type === 'riser' ? t - dur : t);
         const g = ctx.createGain(); g.gain.value = gain;
+        if (slice) { g.gain.setValueAtTime(gain, at + dur - 0.02); g.gain.linearRampToValueAtTime(0, at + dur); }
         const p = ctx.createStereoPanner();
         p.pan.setValueAtTime(type === 'whoosh' ? 0.5 : 0, at); p.pan.linearRampToValueAtTime(type === 'whoosh' ? -0.5 : 0, at + dur);
         s.connect(g).connect(p).connect(OUT);
         if (VERB && SEND) { const sd = ctx.createGain(); sd.gain.value = SEND; p.connect(sd).connect(VERB); }
-        s.start(at);
+        s.start(at, offset, slice ? slice : undefined);
       } else v.fn(ctx, Math.max(0.001, t), gain, len);
     }
     // Bed (music or built-in beat): fade in/out + sidechain-style ducking under every impact so the hits punch through

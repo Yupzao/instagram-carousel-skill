@@ -50,6 +50,13 @@ This is what makes a piece read as motion graphics rather than slides. Learned f
 ## Clean interface scene (product-video look)
 For numbers, cut to one light scene that looks like an app: a white card with rows (label + small note on the left, value on the right), a **highlight that slides from row to row** (`top` tween, `power3.inOut`), a value revealed by **pixel blocks** disappearing in random order, and a total that counts up while going from `blur 18px, scale 1.15` to sharp. A headline on the left with one coloured word. Then leave with an iris from the total.
 
+## Make it look designed, not generated
+See the checklist in `<ic>/references/video.md` › "Why AI-made edits look AI". In motion-graphics mode especially:
+- **Speed graph first:** decide each element's curve before its duration. Fast attack and a long settle for entrances; anticipation (a small move back) before big moves; nothing stops dead or moves at constant speed.
+- **Contrast in one line:** mix an italic serif with an uppercase sans and jump the size on the key word (*like this* **ONE**), instead of a plain caption box.
+- **Real interfaces:** for an app, site or tool, record or screenshot the real thing and animate around it; don't draw a fake window with grey placeholder bars.
+- **Named sounds per job:** airy whoosh on moves, glass pop on appearances, soft impact on landings, mouse click on UI, from a real sample library.
+
 ## Pitfalls
 - **Random must be seeded.** Stills and the render load the page separately; `Math.random()` gives different letter tilts each time. Use a small seeded generator.
 - **Format numbers by hand.** `toLocaleString('pt-PT')` groups with a narrow space (`45 928,64`), not a dot. Use a regex: `i.replace(/\B(?=(\d{3})+(?!\d))/g, '.')`.

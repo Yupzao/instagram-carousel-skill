@@ -17,8 +17,8 @@ The final output is an **MP4**, not the PNGs.
 
      The orientation changes the whole composition (grid, sizes, safe zone), so never pick it by default. Horizontal only works in motion-graphics mode.
    - Also ask the **style**: **slides** (the automatic choreography: camera move between slides) or **motion graphics** (kinetic typography and varied transitions, so it doesn't look like slides). If the user says the result "looks like slides" or asks for something more dynamic, use motion graphics. See `references/motion.md`.
-   - And the **sound**: built-in effects (default), Openverse effects, Openverse music, the user's files, or no sound.
-2. **Read `<ic>/references/video.md`**: choreography, controlling the animation with `data-anim`/`data-delay`, sound and checks.
+   - And the **sound**: the local sample library (default when `~/sfx/kit-motion` exists), Openverse effects, Openverse music, the user's files, synthesised effects (`--sfx=builtin`), or no sound.
+2. **Read `<ic>/references/video.md`**: choreography, controlling the animation with `data-anim`/`data-delay`, sound and checks. Go through its **"Why AI-made edits look AI"** checklist (speed-graph easing, contrast in type/speed/transform, real UI instead of mockups, real sound samples, the user's creative direction) before rendering.
 3. **Tune the choreography in the HTML** if needed. The animation is automatic, but `data-anim` and `data-delay` let you fine-tune the key moments.
 4. **Check with stills before the full video** (fast):
    ```bash
@@ -27,8 +27,8 @@ The final output is an **MP4**, not the PNGs.
    Open the JPEGs in `<output>/carousel-stills/` and confirm nothing is cut off, overlapping or invisible at the end of each entrance.
 5. **Sound** (optional, see `video.md` › Sound):
    - Openverse: `node <ic>/scripts/sounds.mjs search "whoosh" --type=sfx`. Show the options to the user and, **with their permission**, run `node <ic>/scripts/sounds.mjs download <id> <output>/sounds/whoosh-1.mp3`.
-   - File names set the use: `whoosh*` (transitions), `pop*` (stickers/pills), `hit*` (titles). Use **several per type** (`whoosh-1.mp3`, `whoosh-2.mp3`…) so the transitions don't always sound the same; they rotate without back-to-back repeats. Music goes separately.
-   - With no files, the built-in effects already vary on their own (5 whooshes, 3 pops, 3 hits, with random pitch and length).
+   - File names set the use: `whoosh*` (transitions), `pop*` (stickers/pills), `hit*` (titles), `impact*` (cuts), `tick*` (UI), `type*` (typed letters), `riser*`, `shimmer*`, `stutter*`. Use **several per type** (`whoosh-1.mp3`, `whoosh-2.mp3`…) so the transitions don't always sound the same; they rotate without back-to-back repeats. Music goes separately.
+   - With no `--sfx`, the engine uses `~/sfx/kit-motion` (or `$CAROUSEL_SFX`) if it exists; otherwise, and for any type the folder lacks, it synthesises effects that vary on their own. Prefer real samples: synthesised sound is one of the clearest "made by AI" tells.
 6. **Render the MP4**:
    ```bash
    node <ic>/scripts/video.mjs <output>/carousel.html <output>/carousel.mp4 [--reels] [--header="Small|Big"] [--beat=120 | --music=<output>/sounds/music.mp3 --bpm=<its bpm>] [--sfx=<output>/sounds]

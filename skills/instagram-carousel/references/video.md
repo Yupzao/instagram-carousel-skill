@@ -11,6 +11,17 @@ Learned from analysing a motion-design reel frame by frame and its audio (cut de
 - **A continuous, loud, compressed bed** (music) under everything; hits duck it briefly.
 - **Vertical format trick:** fixed title band on top, the content in the middle, and a blurred, enlarged copy of the content filling the rest of the 9:16 frame.
 
+## Why AI-made edits look AI (and the fixes)
+Learned from a reel on exactly this ("Why your Claude edits feel AI", withian.t). Run this checklist before rendering:
+
+| Tell | Why it reads as AI | Fix |
+|---|---|---|
+| **Default motion** | Everything eases the same way, for the same length: no acceleration curve, no weight. | Think in the **speed graph**: fast attack, long settle (`expo.out` / `power4.out`); `power4.inOut` for moves between positions; overshoot (`back.out`) only for small pops. Vary durations by importance: hero 0.8–1 s, secondary 0.4–0.6 s, UI 0.2–0.3 s. Never `linear` except Ken Burns and camera drift. |
+| **No contrast** | One font, one weight, one size, one speed: a plain caption box ("like this one"). | Build contrast on three axes: **type** (italic serif + uppercase sans in one line: *like this* **ONE**; size jumps ≥ 2×), **speed** (one fast element against slow ones), **transform** (scale/rotate/position, not just opacity fades). |
+| **Fake UI** | A hand-drawn app window or chat mockup looks generated: wrong spacing, placeholder bars, no real content. | Use the **real interface**: a real screenshot or a screen recording (OBS, or the OS screen recorder) of the actual app or site, then animate the frame around it (scale-in, cursor, highlight). Draw UI only when it's the user's own design. |
+| **Synthesised sound** | Generated beeps and noise sweeps are recognisable at once. | Use a **real sample library**: `video.mjs` picks up `~/sfx/kit-motion` (or `$CAROUSEL_SFX`) by default, with a named sound for each job: airy whoosh for moves, glass pop for appearances, soft impact for landings, mouse click for UI. Synthesised effects are the fallback (`--sfx=builtin`). |
+| **Outsourced taste** | The AI picks the idea, the layout and the timing, so it all lands on the average. | AI does the **execution**; the **creative direction** (concept, references, what to cut, what the hero moment is) comes from the user. Ask for references and study good motion-design work before choreographing. |
+
 ## Automatic choreography (After Effects style)
 Layers: `.bgfill` (blurred copy, Reels only) · `.cam` (camera: zoom, punch-in, shake, motion blur) › `.carousel` (pans between slides) · header band · white flash layer.
 
@@ -53,7 +64,7 @@ On each slide, in order:
 - The first second must already show the cover title: the hook works the same as in the carousel.
 
 ## Sound
-By default, `video.mjs` generates **built-in sound effects by synthesis**. No licence and no credit needed. They go through a mix bus like a real edit: **compressor → make-up gain → limiter** (loud without clipping) and a generated **reverb** send (`--dry` to turn it off).
+By default, `video.mjs` uses a **real sample library** if one is installed: `$CAROUSEL_SFX` or `~/sfx/kit-motion` (files named by cue: `whoosh-1.wav`, `impact-2.wav`, `tick-1.wav`, `type-1.wav`…; typing samples are sliced into single keystrokes). Any cue type missing from the folder, or everything with `--sfx=builtin`, is **synthesised**: no licence and no credit needed, but it sounds more generated. Either way, the effects go through a mix bus like a real edit: **compressor → make-up gain → limiter** (loud without clipping) and a generated **reverb** send (`--dry` to turn it off).
 
 | Cue | When | Built-in variants |
 |---|---|---|
@@ -94,8 +105,8 @@ node scripts/sounds.mjs download <id> <output>/sounds/whoosh-1.mp3
 - Good CC0 music is rare: if nothing fits, deliver with effects only and tell the user they can add music in Instagram itself (the Reels audio library).
 
 ### Other sources
-- **The user's installed pack (use it by default):** `--sfx=C:/Users/user/sfx/kit-motion`. It holds 7 whooshes, 5 pops and 3 hits picked from the SJC SFX Pack Vol 1 (Sam John Creates); the full 149-sound pack is in `C:/Users/user/sfx/sjc-vol1` (UI & Motion, Camera, Gears, Race). Its licence allows commercial videos with no credit, but **never copy these sounds into a skill, template or shared folder**: they can't be redistributed on their own. File names must have no spaces (`whoosh-1.wav`), or the engine ignores them.
-- The user's files (same `whoosh/pop/hit` names, or `--music`).
+- **A local pack (used automatically):** `~/sfx/kit-motion`. On the author's machine it holds a sound for every cue (whoosh ×7, pop ×5, hit ×3, impact ×3, tick ×4, type ×2, riser ×2, shimmer ×2, stutter ×2) picked from the SJC SFX Pack Vol 1 (Sam John Creates); the full 149-sound pack sits next to it in `~/sfx/sjc-vol1` (UI & Motion, Camera, Gears, Race). Its licence allows commercial videos with no credit, but **never copy these sounds into a skill, template or shared folder**: they can't be redistributed on their own. File names must have no spaces (`whoosh-1.wav`), or the engine ignores them.
+- The user's files: `--sfx=<folder>` with the cue names above (or `--music`).
 - The **SoundWeaver** plugin (if installed): 52 real WAV effects, copied into the sounds folder with the names above.
 - `--mute` renders the video with no sound.
 
@@ -108,7 +119,7 @@ If the page defines `window.__scene()`, `video.mjs` uses it instead of the autom
 3. After the MP4, report its length and size. Instagram accepts up to 4 GB and 60 s in the feed. Typical files are 15–40 MB.
 
 ## `video.mjs` options
-`--reels` (1080×1920) · `--landscape` (1920×1080, custom choreography only) · `--header="small|big"` · `--no-bgfill` · `--transitions=auto|pan|whip|zoom|cut` · `--no-stutter` · `--bpm=N` · `--beat=N` · `--fps=30` · `--bitrate=12` (Mbps) · `--sfx=builtin|<folder>|none` · `--seed=N` · `--music=<file>` · `--sfx-volume` · `--music-volume` · `--dry` · `--mute` · `--stills=…` · `--max-frames=N` (testing) · `--debug` (prints the cue list)
+`--reels` (1080×1920) · `--landscape` (1920×1080, custom choreography only) · `--header="small|big"` · `--no-bgfill` · `--transitions=auto|pan|whip|zoom|cut` · `--no-stutter` · `--bpm=N` · `--beat=N` · `--fps=30` · `--bitrate=12` (Mbps) · `--sfx=<folder>|builtin|none` (default `~/sfx/kit-motion` if present) · `--seed=N` · `--music=<file>` · `--sfx-volume` · `--music-volume` · `--dry` · `--mute` · `--stills=…` · `--max-frames=N` (testing) · `--debug` (prints the cue list)
 
 ## AI footage with Higgsfield (optional)
 `scripts/higgsfield.mjs` calls the Higgsfield API (https://docs.higgsfield.ai) to generate **images** (e.g. the cinematic character shots) and short **image-to-video clips** for reels.
