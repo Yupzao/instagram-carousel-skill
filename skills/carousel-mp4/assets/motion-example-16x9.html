@@ -1,0 +1,336 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Motion M3 F80</title>
+<!-- Par Bricolage Grotesque (palavras-chave) + Geist (palavras de ligação). Marca VD Carros: grafite #141416 · claro #F1F1F3 · pop #EC4B57 -->
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,800&family=Geist:wght@500;600;700&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  :root { --dark: #141416; --light: #f1f1f3; --pop: #ec4b57; --popd: #c42f3d; --mid: #5a5a60;
+          --fk: 'Bricolage Grotesque', Impact, sans-serif; --fc: 'Geist', system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--dark); }
+  body { font-family: var(--fc); -webkit-font-smoothing: antialiased; }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--dark); }
+  .scene { position: absolute; inset: 0; visibility: hidden; overflow: hidden; }
+  .a { position: absolute; }
+  /* "filmagem": foto 4:3 a 1920 de largura, com a câmara sempre a mexer */
+  .shot { position: absolute; left: 0; width: 1920px; height: 1440px; background: center / cover no-repeat; }
+  .rig { position: absolute; inset: 0; transform-origin: 50% 40%; }
+  .scrim { position: absolute; inset: 0; pointer-events: none; }
+  /* legendas cinéticas: ligação pequena + palavra-chave enorme */
+  .c { font: 600 58px/1 var(--fc); color: #fff; white-space: nowrap; text-shadow: 0 2px 24px rgba(0,0,0,.35); }
+  .k { font: 800 220px/.82 var(--fk); letter-spacing: -.035em; white-space: nowrap; }
+  .k .ch { display: inline-block; }
+  .red { color: var(--pop); }
+  .white { color: #fff; }
+  .micro { font: 600 31px/1.3 var(--fc); color: rgba(255,255,255,.86); white-space: nowrap; }
+  .fine { font: 500 31px/1.35 var(--fc); color: rgba(255,255,255,.86); }
+  /* cena de interface (clara) */
+  .ui { background: var(--light); color: var(--dark); }
+  .card { position: absolute; left: 960px; top: 150px; width: 864px; height: 780px; border-radius: 44px; background: #fff;
+          box-shadow: 0 40px 90px rgba(20,20,22,.14); overflow: hidden; }
+  .hl { position: absolute; left: 24px; right: 24px; height: 128px; border-radius: 28px; background: var(--light); }
+  .rw { position: absolute; left: 64px; right: 64px; height: 128px; display: flex; align-items: center; }
+  .rw .n { font: 600 40px/1.15 var(--fc); }
+  .rw .s { display: block; font: 500 31px/1.2 var(--fc); color: var(--mid); margin-top: 6px; }
+  .rw .v { margin-left: auto; font: 800 64px/1 var(--fk); font-variant-numeric: tabular-nums; letter-spacing: -.02em; position: relative; }
+  .pix { position: absolute; inset: -8px -12px; display: grid; grid-template-columns: repeat(10, 1fr); grid-template-rows: repeat(3, 1fr); }
+  .pix i { background: var(--popd); }
+  .total { position: absolute; left: 64px; right: 64px; top: 560px; display: flex; align-items: flex-end; border-top: 3px solid var(--dark); padding-top: 40px; }
+  .total .n { font: 700 40px/1 var(--fc); padding-bottom: 14px; }
+  .total .v { margin-left: auto; font: 800 124px/.85 var(--fk); color: var(--popd); letter-spacing: -.03em; font-variant-numeric: tabular-nums; }
+  .chip { display: inline-flex; align-items: center; padding: 14px 26px; border-radius: 999px; font: 700 31px/1 var(--fc); white-space: nowrap; }
+  /* transições */
+  #slices, #pixels { position: absolute; inset: 0; z-index: 40; pointer-events: none; visibility: hidden; }
+  #slices div { position: absolute; left: 0; width: 1920px; background-repeat: no-repeat; background-size: 1920px 1440px; }
+  #pixels { display: grid; grid-template-columns: repeat(16, 120px); grid-template-rows: repeat(9, 120px); }
+  #pixels i { background: var(--pop); transform: scale(0); }
+  .panel { position: absolute; top: -400px; left: -600px; width: 3100px; height: 1900px; visibility: hidden; z-index: 40; }
+  .iris { position: absolute; width: 100px; height: 100px; margin: -50px 0 0 -50px; border-radius: 50%; transform: scale(0); visibility: hidden; z-index: 40; }
+  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 60; }
+  #hud { position: absolute; inset: 0; z-index: 30; pointer-events: none; visibility: hidden; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- S1 · gancho sobre a frente do carro -->
+  <section class="scene" id="s1">
+    <div class="rig" id="r1"><div class="shot" style="top:-300px;background-image:url(01-full.jpg)"></div></div>
+    <div class="scrim" style="background:linear-gradient(180deg,rgba(10,10,10,.72) 0%,rgba(10,10,10,.2) 55%,rgba(10,10,10,.5) 100%)"></div>
+    <div class="a c" id="s1a" style="left:104px;top:140px">Quanto custa</div>
+    <div class="a k red" id="s1b" style="left:92px;top:208px">importar</div>
+    <div class="a c" id="s1c" style="left:1048px;top:450px">este</div>
+    <div class="a k white" id="s1d" style="left:1180px;top:356px;font-size:300px">M3?</div>
+  </section>
+
+  <!-- S2 · "M3" gigante por trás do carro -->
+  <section class="scene" id="s2">
+    <div class="rig" id="r2">
+      <div class="shot" style="top:0;background-image:url(07-full.jpg)"></div>
+      <div class="a k red" id="bigM3" style="left:0;right:0;top:8px;text-align:center;font-size:600px;letter-spacing:-.05em">M3</div>
+      <div class="shot" id="cut" style="top:0;background-image:url(07-full.jpg);clip-path:polygon(10% 100%,10% 60%,12.5% 50.8%,16.25% 45%,21.25% 39.2%,20.6% 35%,21.9% 32.9%,28.1% 31.7%,29.4% 33.3%,33.75% 22.9%,36.25% 21.25%,51.25% 20.4%,68.1% 21%,70.6% 22.9%,75.6% 32.5%,76.6% 31.25%,83.1% 32.9%,84.4% 35.4%,82.5% 37.9%,86.25% 43.3%,90% 50%,93.1% 56.7%,94.4% 66.7%,94.4% 100%)"></div>
+    </div>
+    <div class="scrim" style="background:linear-gradient(0deg,rgba(10,10,10,.75) 0%,rgba(10,10,10,0) 30%,rgba(10,10,10,0) 82%,rgba(10,10,10,.55) 100%)"></div>
+    <div class="a" style="left:96px;bottom:150px;display:flex;gap:18px" id="spec">
+      <span class="chip" style="background:#fff;color:var(--dark)">F80</span>
+      <span class="chip" style="background:#fff;color:var(--dark)">2015</span>
+      <span class="chip" style="background:#fff;color:var(--dark)">431 cv</span>
+      <span class="chip" style="background:var(--pop);color:var(--dark)">caixa DCT</span>
+    </div>
+    <div class="a fine" id="s2f" style="left:96px;bottom:84px">Anúncio real de um stand alemão</div>
+  </section>
+
+  <!-- S3 · pele branca, texto a seguir a curva -->
+  <section class="scene" id="s3">
+    <div class="rig" id="r3"><div class="shot" style="top:-200px;background-image:url(15-full.jpg)"></div></div>
+    <div class="scrim" style="background:linear-gradient(90deg,rgba(10,10,10,.78) 0%,rgba(10,10,10,.25) 50%,rgba(10,10,10,.1) 100%)"></div>
+    <div class="a c" id="s3a" style="left:104px;top:150px">preto por fora,</div>
+    <div class="a c" id="s3b" style="left:104px;top:236px">pele</div>
+    <div class="a k white" id="s3c" style="left:92px;top:300px;font-size:250px">branca</div>
+    <svg class="a" id="curve" style="left:0;top:0" width="1920" height="1080" viewBox="0 0 1920 1080">
+      <defs><linearGradient id="rib" x1="0" x2="1"><stop offset="0" stop-color="#ec4b57" stop-opacity="0"/><stop offset=".35" stop-color="#ec4b57"/><stop offset="1" stop-color="#ec4b57"/></linearGradient></defs>
+      <path id="arc" d="M -120 1010 C 380 760, 760 1060, 1180 820 S 1760 420, 2080 380" fill="none" stroke="url(#rib)" stroke-width="86" stroke-linecap="round"/>
+      <text font-family="Geist" font-weight="700" font-size="54" fill="#fff" dy="19"><textPath id="arcText" href="#arc" startOffset="100%">por dentro  ·  por dentro  ·  por dentro  ·  por dentro  ·  por dentro</textPath></text>
+    </svg>
+    <div class="a c" id="s3d" style="left:1250px;top:150px">uma spec</div>
+    <div class="a k red" id="s3e" style="left:1236px;top:214px">rara.</div>
+  </section>
+
+  <!-- S4 · lateral, texto deitado no chão -->
+  <section class="scene" id="s4">
+    <div class="rig" id="r4"><div class="shot" style="top:-330px;background-image:url(02-full.jpg)"></div></div>
+    <div class="scrim" style="background:linear-gradient(180deg,rgba(10,10,10,.75) 0%,rgba(10,10,10,.15) 45%,rgba(10,10,10,0) 70%,rgba(10,10,10,.35) 100%)"></div>
+    <div class="a" style="left:0;top:800px;width:1920px;height:300px;perspective:700px;overflow:hidden">
+      <div id="ground" class="k white" style="position:absolute;left:0;top:30px;font-size:170px;opacity:.9;transform:rotateX(58deg);transform-origin:50% 100%">ALEMANHA → PORTUGAL → ALEMANHA → PORTUGAL →</div>
+    </div>
+    <div class="a c" id="s4a" style="left:104px;top:110px">no anúncio:</div>
+    <div class="a k white" id="s4b" style="left:92px;top:176px;font-variant-numeric:tabular-nums" data-to="39999">39.999 €</div>
+  </section>
+
+  <!-- S5 · interface clara: as contas -->
+  <section class="scene ui" id="s5">
+    <div class="a" style="left:96px;top:300px">
+      <div class="c" id="s5a" style="color:var(--dark);text-shadow:none">Fizemos</div>
+      <div class="k" id="s5b" style="color:var(--dark);font-size:190px;margin-top:22px">as <span style="color:var(--popd)">contas.</span></div>
+      <div class="fine" id="s5c" style="color:var(--mid);margin-top:52px;width:720px">Chave-na-mão: verificação, transporte e legalização. Garantia opcional, com custo extra.</div>
+    </div>
+    <div class="card" id="card">
+      <div class="hl" id="hl" style="top:56px"></div>
+      <div class="rw" id="rw1" style="top:56px"><div><span class="n">Carro</span><span class="s">preço no anúncio</span></div><span class="v">39.999 €</span></div>
+      <div class="rw" id="rw2" style="top:212px"><div><span class="n">ISV</span><span class="s">−80%, tem mais de 10 anos</span></div><span class="v">3.429,64 €<span class="pix" id="pix"></span></span></div>
+      <div class="rw" id="rw3" style="top:368px"><div><span class="n">Serviço</span><span class="s">chave-na-mão</span></div><span class="v">2.500 €</span></div>
+      <div class="total" id="tot"><span class="n">Total</span><span class="v" id="totv" data-to="45928.64">45.928,64 €</span></div>
+    </div>
+  </section>
+
+  <!-- S6 · traseira: comparação com Portugal -->
+  <section class="scene" id="s6">
+    <div class="rig" id="r6"><div class="shot" style="top:-230px;background-image:url(03-full.jpg)"></div></div>
+    <div class="scrim" style="background:rgba(10,10,10,.6)"></div>
+    <div class="a c" id="s6a" style="left:104px;top:150px">O mais barato em Portugal:</div>
+    <div class="a k white" id="s6b" style="left:92px;top:224px">44.950 €</div>
+    <div class="a" id="strike" style="height:22px;background:var(--pop);transform-origin:0 50%"></div>
+    <div class="a c" id="s6c" style="left:104px;top:450px">com 192.560 km.</div>
+    <div class="a c" id="s6d" style="left:104px;top:640px">Este tem</div>
+    <div class="a k red" id="s6e" style="left:92px;top:706px">−48.000 km</div>
+  </section>
+
+  <!-- S7 · CTA a vermelho -->
+  <section class="scene" id="s7" style="background:var(--pop)">
+    <div class="a c" id="s7a" style="left:104px;top:250px;color:var(--dark);text-shadow:none">Já tem um carro debaixo de olho?</div>
+    <div class="a k" id="s7b" style="left:92px;top:330px;color:var(--dark);font-size:250px">Calcule o ISV.</div>
+    <div class="a" id="s7c" style="left:104px;top:690px"><span class="chip" style="background:var(--dark);color:#fff;font-size:44px;padding:24px 40px">vdcarros.pt/simulador-isv →</span></div>
+    <img class="a" id="s7l" src="logo.png" alt="VD Carros" style="right:96px;bottom:80px;width:260px">
+  </section>
+
+  <!-- camada editorial fixa nas cenas com foto -->
+  <div id="hud">
+    <div class="a micro" style="left:104px;top:56px">VD Carros × caso real de importação</div>
+    <div class="a micro" style="right:96px;top:56px;text-align:right">BMW M3 F80 · 2015</div>
+  </div>
+
+  <div id="slices"></div>
+  <div id="pixels"></div>
+  <div class="panel" id="p1" style="background:var(--light);transform:skewX(-18deg)"></div>
+  <div class="panel" id="p2" style="background:var(--pop);transform:skewX(-18deg)"></div>
+  <div class="iris" id="i1" style="background:var(--pop)"></div>
+  <div class="iris" id="i2" style="background:var(--dark)"></div>
+  <div class="flash" id="flash"></div>
+</div>
+
+<script>
+window.__scene = async function () {
+  await document.fonts.ready;
+  await Promise.all(['01','02','03','07','15'].map((n) => { const i = new Image(); i.src = n + '-full.jpg'; return i.decode().catch(() => {}); }));
+  await document.querySelector('#s7l').decode().catch(() => {});
+  const $ = (s) => document.querySelector(s);
+  const tvRect = (() => { const s5 = $('#s5'); s5.style.visibility = 'visible'; const r = $('#totv').getBoundingClientRect(); s5.style.visibility = ''; return r; })(); // antes de qualquer tween mexer no cartão
+  const tl = gsap.timeline({ paused: true });
+  const cues = [];
+  const cue = (t, type) => cues.push({ t, type });
+  let seed = 7; const rnd = (a, b) => { seed = (seed * 16807) % 2147483647; return a + (seed / 2147483647) * (b - a); }; // igual em stills e render
+  const show = (el, t) => tl.set(el, { visibility: 'visible' }, t);
+  const hide = (el, t) => tl.set(el, { visibility: 'hidden' }, t);
+  const fmt = (n, dec) => { const [i, d] = n.toFixed(dec).split('.'); return i.replace(/\B(?=(\d{3})+(?!\d))/g, '.') + (d ? ',' + d : '') + ' €'; };
+
+  // parte uma palavra-chave em letras
+  document.querySelectorAll('.k:not(#ground):not(#bigM3)').forEach((el) => {
+    const w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT); const nodes = [];
+    while (w.nextNode()) nodes.push(w.currentNode);
+    nodes.forEach((n) => { const f = document.createElement('span');
+      f.innerHTML = [...n.textContent].map((c) => `<span class="ch">${c === ' ' ? '&nbsp;' : c}</span>`).join('');
+      n.replaceWith(...f.childNodes); });
+  });
+
+  // palavra de ligação: sobe curta
+  const say = (el, t) => tl.fromTo(el, { y: 34, opacity: 0, filter: 'blur(8px)' }, { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.28, ease: 'power3.out' }, t);
+  // palavra-chave: letras entram rodadas e ficam ligeiramente tortas
+  const kick = (el, t, spread = 1) => {
+    const chs = $(el).querySelectorAll('.ch');
+    chs.forEach((c, i) => tl.fromTo(c, { y: 160, rotate: rnd(-40, 40) * spread, scale: 0.2, opacity: 0 },
+      { y: rnd(-10, 10) * spread, rotate: rnd(-7, 7) * spread, scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.2)' }, t + i * 0.035));
+    cue(t + 0.04, 'hit');
+  };
+  // tira tudo de uma vez: sopro com blur
+  const blow = (els, t) => tl.to(els, { scale: 1.25, opacity: 0, filter: 'blur(22px)', duration: 0.3, ease: 'power2.in', stagger: 0.03 }, t);
+  const shake = (t) => tl.fromTo('#stage', { x: 0, y: 0 }, { keyframes: [{ x: -16, y: 9 }, { x: 13, y: -7 }, { x: -6, y: 4 }, { x: 0, y: 0 }], duration: 0.28, ease: 'none' }, t);
+  const flash = (t, o = 0.8) => tl.fromTo('#flash', { opacity: o }, { opacity: 0, duration: 0.35, ease: 'power2.out' }, t);
+  const cam = (rig, t, d, from, to) => tl.fromTo(rig, from, { ...to, duration: d, ease: 'none' }, t); // câmara sempre em movimento
+
+  // transição glitch: fatias da foto seguinte entram de lados alternados
+  const slices = (img, top, t, next, prev) => {
+    const box = $('#slices'); box.innerHTML = '';
+    for (let i = 0; i < 9; i++) {
+      const d = document.createElement('div');
+      Object.assign(d.style, { top: i * 120 + 'px', height: '120px', backgroundImage: `url(${img})`, backgroundPosition: `0 ${top - i * 120}px` });
+      box.appendChild(d);
+      tl.fromTo(d, { x: (i % 2 ? 1 : -1) * 1920 }, { x: 0, duration: 0.32, ease: 'power4.out' }, t + rnd(0, 0.14));
+    }
+    show(box, t); tl.set(prev, { visibility: 'hidden' }, t + 0.48); show(next, t + 0.48); hide(box, t + 0.5);
+    tl.fromTo('#stage', { filter: 'saturate(1)' }, { keyframes: [{ filter: 'saturate(2.2) hue-rotate(-12deg)' }, { filter: 'saturate(1)' }], duration: 0.5, ease: 'steps(4)' }, t);
+    cue(t, 'whoosh');
+  };
+  // transição pixel: quadrados vermelhos enchem e limpam em ordem aleatória
+  const pixels = (t, next, prev) => {
+    const g = $('#pixels'); g.innerHTML = '<i></i>'.repeat(144);
+    show(g, t);
+    tl.to(g.children, { scale: 1, duration: 0.12, ease: 'steps(2)', stagger: { each: 0.0024, from: 'random' } }, t);
+    hide(prev, t + 0.5); show(next, t + 0.5);
+    tl.to(g.children, { scale: 0, duration: 0.12, ease: 'steps(2)', stagger: { each: 0.0024, from: 'random' } }, t + 0.52);
+    hide(g, t + 1.05);
+    cue(t, 'whoosh');
+  };
+  const panel = (el, t, next, prev) => {
+    show(el, t);
+    tl.fromTo(el, { x: 3200 }, { x: 0, duration: 0.42, ease: 'power3.in' }, t);
+    hide(prev, t + 0.44); show(next, t + 0.44);
+    tl.to(el, { x: -3400, duration: 0.45, ease: 'power3.out' }, t + 0.46);
+    hide(el, t + 0.92);
+    cue(t + 0.1, 'whoosh');
+  };
+
+  // S1 · gancho (0–3.2)
+  show('#s1', 0); show('#hud', 0);
+  tl.fromTo('#hud', { opacity: 0 }, { opacity: 1, duration: 0.4 }, 0.2);
+  cam('#r1', 0, 3.4, { scale: 1.14, x: 40 }, { scale: 1.02, x: -30 });
+  say('#s1a', 0.15);
+  kick('#s1b', 0.45);
+  say('#s1c', 1.2);
+  kick('#s1d', 1.45, 0.6); shake(1.55); flash(1.5, 0.5);
+  blow(['#s1a', '#s1b', '#s1c', '#s1d'], 2.75);
+
+  // glitch → S2
+  slices('07-full.jpg', 0, 2.95, '#s2', '#s1');
+
+  // S2 · M3 por trás do carro (3.43–6.6)
+  cam('#r2', 3.43, 3.4, { scale: 1.0 }, { scale: 1.07 });
+  tl.fromTo('#bigM3', { yPercent: 70 }, { yPercent: 0, duration: 0.7, ease: 'expo.out' }, 3.6); cue(3.62, 'hit');
+  tl.fromTo('#spec > *', { y: 50, opacity: 0, scale: 0.7 }, { y: 0, opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2)', stagger: 0.11 }, 4.35); cue(4.35, 'pop');
+  say('#s2f', 4.9);
+
+  // whip pan → S3
+  tl.to('#s2', { x: -1920, filter: 'blur(26px)', duration: 0.42, ease: 'power4.in' }, 6.3);
+  hide('#s2', 6.72); show('#s3', 6.72); cue(6.35, 'whoosh');
+  tl.fromTo('#s3', { x: 1920, filter: 'blur(26px)' }, { x: 0, filter: 'blur(0px)', duration: 0.45, ease: 'power4.out' }, 6.72);
+
+  // S3 · interior (6.72–10.6)
+  cam('#r3', 6.72, 4.2, { scale: 1.12, x: 30 }, { scale: 1.0, x: -20 });
+  say('#s3a', 7.15);
+  say('#s3b', 7.55);
+  kick('#s3c', 7.75);
+  const arcLen = $('#arc').getTotalLength();
+  tl.fromTo('#arc', { strokeDasharray: arcLen, strokeDashoffset: arcLen }, { strokeDashoffset: 0, duration: 0.8, ease: 'power3.inOut' }, 8.3); cue(8.3, 'whoosh');
+  tl.fromTo('#arcText', { attr: { startOffset: '100%' } }, { attr: { startOffset: '-60%' }, duration: 2.4, ease: 'none' }, 8.35);
+  say('#s3d', 8.95);
+  kick('#s3e', 9.15, 1.4); shake(9.25);
+
+  // pixels → S4
+  pixels(10.15, '#s4', '#s3');
+
+  // S4 · Alemanha → Portugal no chão (10.65–13.9)
+  cam('#r4', 10.65, 3.6, { scale: 1.08, x: -40 }, { scale: 1.0, x: 30 });
+  tl.fromTo('#ground', { x: 0 }, { x: -1700, duration: 3.6, ease: 'none' }, 10.65);
+  say('#s4a', 11.0);
+  kick('#s4b', 11.25, 0.5);
+
+  // painel claro → S5
+  tl.set('#hud', { visibility: 'hidden' }, 13.85);
+  panel('#p1', 13.4, '#s5', '#s4');
+
+  // S5 · as contas, estilo interface (13.84–18.6)
+  say('#s5a', 14.0);
+  kick('#s5b', 14.2, 0.35);
+  tl.fromTo('#card', { y: 120, opacity: 0, rotate: 2 }, { y: 0, opacity: 1, rotate: 0, duration: 0.7, ease: 'expo.out' }, 14.1);
+  ['#rw1', '#rw2', '#rw3'].forEach((r, i) => tl.fromTo(r, { x: 60, opacity: 0 }, { x: 0, opacity: 1, duration: 0.45, ease: 'power3.out' }, 14.4 + i * 0.1));
+  // destaque percorre as linhas (como uma app)
+  tl.to('#hl', { top: 212, duration: 0.45, ease: 'power3.inOut' }, 15.2);
+  const pix = $('#pix'); pix.innerHTML = '<i></i>'.repeat(30);
+  tl.to(pix.children, { opacity: 0, duration: 0.05, stagger: { each: 0.014, from: 'random' } }, 15.45); cue(15.45, 'pop');
+  tl.to('#hl', { top: 368, duration: 0.45, ease: 'power3.inOut' }, 16.3);
+  tl.to('#hl', { top: 520, height: 230, opacity: 0, duration: 0.45, ease: 'power3.inOut' }, 16.95);
+  tl.fromTo('#tot', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' }, 16.95);
+  const o = { v: 0 }; tl.fromTo(o, { v: 0 }, { v: 45928.64, duration: 1.0, ease: 'power3.out', onUpdate: () => { $('#totv').textContent = fmt(o.v, 2); } }, 17.0);
+  tl.fromTo('#totv', { filter: 'blur(18px)', scale: 1.15 }, { filter: 'blur(0px)', scale: 1, duration: 0.8, ease: 'power3.out' }, 17.0);
+  cue(17.9, 'hit');
+  say('#s5c', 17.4);
+
+  // íris a partir do total → S6
+  const tv = tvRect;
+  ['#i1', '#i2'].forEach((c, i) => { tl.set(c, { left: tv.left + tv.width / 2, top: tv.top + tv.height / 2 }, 0); show(c, 18.55 + i * 0.16);
+    tl.fromTo(c, { scale: 0 }, { scale: 48, duration: 0.55, ease: 'power3.in' }, 18.55 + i * 0.16); });
+  hide('#s5', 19.3); show('#s6', 19.3); hide('#i1', 19.3);
+  tl.set('#hud', { visibility: 'visible' }, 19.3);
+  tl.to('#i2', { opacity: 0, duration: 0.3 }, 19.3); hide('#i2', 19.62);
+  cue(18.6, 'whoosh');
+
+  // S6 · comparação com Portugal (19.3–22.8)
+  cam('#r6', 19.3, 3.6, { scale: 1.1, x: 30 }, { scale: 1.0, x: -20 });
+  say('#s6a', 19.45);
+  kick('#s6b', 19.7, 0.4);
+  const sb = $('#s6b'); Object.assign($('#strike').style, { left: sb.offsetLeft - 14 + 'px', width: sb.offsetWidth + 28 + 'px', top: sb.offsetTop + sb.offsetHeight * 0.48 + 'px' });
+  tl.fromTo('#strike', { scaleX: 0, rotate: -3 }, { scaleX: 1, rotate: -3, duration: 0.3, ease: 'power4.out' }, 20.55); cue(20.55, 'hit');
+  say('#s6c', 20.85);
+  say('#s6d', 21.3);
+  kick('#s6e', 21.5, 1.2); shake(21.6); flash(21.55, 0.4);
+
+  // painel vermelho → S7
+  tl.set('#hud', { visibility: 'hidden' }, 23.04);
+  panel('#p2', 22.6, '#s7', '#s6');
+
+  // S7 · CTA (23.04–26.8)
+  say('#s7a', 23.2);
+  kick('#s7b', 23.5, 0.6);
+  tl.fromTo('#s7c', { scale: 0.6, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.5, ease: 'back.out(2.2)' }, 24.3); cue(24.3, 'pop');
+  tl.to('#s7c .chip', { scale: 1.05, duration: 0.4, yoyo: true, repeat: 3, ease: 'sine.inOut' }, 24.9);
+  tl.fromTo('#s7l', { opacity: 0, y: 30 }, { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' }, 24.6);
+  tl.to({}, { duration: 0.01 }, 26.8);
+
+  window.__video = { duration: tl.duration(), cues: cues.sort((a, b) => a.t - b.t), seek: (s) => { tl.seek(s, false); } };
+  return tl.duration();
+};
+</script>
+</body>
+</html>

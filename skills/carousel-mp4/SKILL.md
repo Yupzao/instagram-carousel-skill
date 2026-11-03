@@ -11,7 +11,12 @@ The final output is an **MP4**, not the PNGs.
 ## Workflow
 
 1. **Make the carousel as usual**: follow steps 1 to 4 of `<ic>/SKILL.md` (brief, archetype, visual system, script and HTML). All the rules apply: continuity between slides, new fonts, 2+1 palette and design review.
-   - Also ask for the **video format**: feed 4:5 (1080×1350, default) or Reels 9:16 (1080×1920).
+   - **Always ask the orientation before designing**, even when the request doesn't mention it (multiple-choice question):
+     - **Vertical**: Reels/Stories 9:16 (1080×1920, `--reels`) or feed 4:5 (1080×1350, no flag);
+     - **Horizontal**: 16:9 (1920×1080, `--landscape`), for YouTube, a website or screens.
+
+     The orientation changes the whole composition (grid, sizes, safe zone), so never pick it by default. Horizontal only works in motion-graphics mode.
+   - Also ask the **style**: **slides** (the automatic choreography: camera move between slides) or **motion graphics** (kinetic typography and varied transitions, so it doesn't look like slides). If the user says the result "looks like slides" or asks for something more dynamic, use motion graphics. See `references/motion.md`.
    - And the **sound**: built-in effects (default), Openverse effects, Openverse music, the user's files, or no sound.
 2. **Read `<ic>/references/video.md`**: choreography, controlling the animation with `data-anim`/`data-delay`, sound and checks.
 3. **Tune the choreography in the HTML** if needed. The animation is automatic, but `data-anim` and `data-delay` let you fine-tune the key moments.

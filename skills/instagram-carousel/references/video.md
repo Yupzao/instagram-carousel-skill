@@ -94,9 +94,13 @@ node scripts/sounds.mjs download <id> <output>/sounds/whoosh-1.mp3
 - Good CC0 music is rare: if nothing fits, deliver with effects only and tell the user they can add music in Instagram itself (the Reels audio library).
 
 ### Other sources
+- **The user's installed pack (use it by default):** `--sfx=C:/Users/user/sfx/kit-motion`. It holds 7 whooshes, 5 pops and 3 hits picked from the SJC SFX Pack Vol 1 (Sam John Creates); the full 149-sound pack is in `C:/Users/user/sfx/sjc-vol1` (UI & Motion, Camera, Gears, Race). Its licence allows commercial videos with no credit, but **never copy these sounds into a skill, template or shared folder**: they can't be redistributed on their own. File names must have no spaces (`whoosh-1.wav`), or the engine ignores them.
 - The user's files (same `whoosh/pop/hit` names, or `--music`).
 - The **SoundWeaver** plugin (if installed): 52 real WAV effects, copied into the sounds folder with the names above.
 - `--mute` renders the video with no sound.
+
+## Custom choreography (motion graphics)
+If the page defines `window.__scene()`, `video.mjs` uses it instead of the automatic choreography. This is how to make kinetic-typography pieces with varied transitions that don't look like slides. Full guide and transition catalogue: `~/.claude/skills/carousel-mp4/references/motion.md`.
 
 ## Checks
 1. `--stills=t1,t2,…` before the full render. Pick moments halfway through entrances and at the end of each hold.
@@ -104,7 +108,7 @@ node scripts/sounds.mjs download <id> <output>/sounds/whoosh-1.mp3
 3. After the MP4, report its length and size. Instagram accepts up to 4 GB and 60 s in the feed. Typical files are 15–40 MB.
 
 ## `video.mjs` options
-`--reels` (1080×1920) · `--header="small|big"` · `--no-bgfill` · `--transitions=auto|pan|whip|zoom|cut` · `--no-stutter` · `--bpm=N` · `--beat=N` · `--fps=30` · `--bitrate=12` (Mbps) · `--sfx=builtin|<folder>|none` · `--seed=N` · `--music=<file>` · `--sfx-volume` · `--music-volume` · `--dry` · `--mute` · `--stills=…` · `--max-frames=N` (testing) · `--debug` (prints the cue list)
+`--reels` (1080×1920) · `--landscape` (1920×1080, custom choreography only) · `--header="small|big"` · `--no-bgfill` · `--transitions=auto|pan|whip|zoom|cut` · `--no-stutter` · `--bpm=N` · `--beat=N` · `--fps=30` · `--bitrate=12` (Mbps) · `--sfx=builtin|<folder>|none` · `--seed=N` · `--music=<file>` · `--sfx-volume` · `--music-volume` · `--dry` · `--mute` · `--stills=…` · `--max-frames=N` (testing) · `--debug` (prints the cue list)
 
 ## AI footage with Higgsfield (optional)
 `scripts/higgsfield.mjs` calls the Higgsfield API (https://docs.higgsfield.ai) to generate **images** (e.g. the cinematic character shots) and short **image-to-video clips** for reels.
