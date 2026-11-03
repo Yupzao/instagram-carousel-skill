@@ -44,12 +44,33 @@
     for (let i = 0; i < d.length; i++) d[i] = rnd() * 2 - 1;
     const s = ctx.createBufferSource(); s.buffer = buf; return s;
   };
+  // Mix bus: every effect goes into OUT (compressor → limiter) and, by SEND amount, into the reverb.
+  let OUT = null, VERB = null, SEND = 0;
+  const buildBus = (ctx, reverb) => {
+    const comp = ctx.createDynamicsCompressor();
+    comp.threshold.value = -20; comp.knee.value = 6; comp.ratio.value = 3.5; comp.attack.value = 0.005; comp.release.value = 0.2;
+    const makeup = ctx.createGain(); makeup.gain.value = 1.5;
+    const lim = ctx.createDynamicsCompressor(); // brick-wall-ish limiter so the mix can be loud without clipping
+    lim.threshold.value = -1.5; lim.knee.value = 0; lim.ratio.value = 20; lim.attack.value = 0.001; lim.release.value = 0.06;
+    comp.connect(makeup).connect(lim).connect(ctx.destination);
+    OUT = comp;
+    if (reverb) { // generated impulse response: 2 s of decaying stereo noise
+      const len = SR * 2, ir = ctx.createBuffer(2, len, SR);
+      for (let c = 0; c < 2; c++) { const d = ir.getChannelData(c); for (let i = 0; i < len; i++) d[i] = (rnd() * 2 - 1) * Math.pow(1 - i / len, 3.2); }
+      const conv = ctx.createConvolver(); conv.buffer = ir;
+      const wet = ctx.createGain(); wet.gain.value = 0.32;
+      conv.connect(wet).connect(comp);
+      VERB = conv;
+    }
+  };
   // Envelope + stereo pan following the camera (right to left, like the content)
   const env = (ctx, t, len, peak, gain, panFrom = 0, panTo = 0) => {
     const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, t);
     g.gain.exponentialRampToValueAtTime(gain, t + len * peak); g.gain.exponentialRampToValueAtTime(0.0001, t + len);
     const p = ctx.createStereoPanner(); p.pan.setValueAtTime(panFrom, t); p.pan.linearRampToValueAtTime(panTo, t + len);
-    g.connect(p).connect(ctx.destination); return g;
+    g.connect(p).connect(OUT || ctx.destination);
+    if (VERB && SEND > 0) { const s = ctx.createGain(); s.gain.value = SEND; p.connect(s).connect(VERB); }
+    return g;
   };
 
   // Built-in effects, synthesised (no rights, no credit). Each type has several variants
@@ -125,13 +146,95 @@
       o.connect(env(ctx, t, vary(0.7, 0.15), 0.02, gain * 0.45)); o.start(t); o.stop(t + 0.8);
     },
   };
-  const BUILTIN = { whoosh: WHOOSH, pop: POP, hit: HIT };
+  // Motion-design sound design (learned from fast-cut reels): a heavy impact on every hard cut,
+  // tiny UI ticks when interface elements appear, keystrokes for typed text, a riser into big reveals
+  // and a shimmer on the final reveal.
+  const IMPACT = {
+    boom(ctx, t, gain) { // sub drop + low noise burst
+      const o = ctx.createOscillator(); o.type = 'sine'; const f0 = vary(68, 0.15);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.45, t + 0.7);
+      o.connect(env(ctx, t, vary(0.9, 0.15), 0.01, gain * 1.1)); o.start(t); o.stop(t + 1);
+      const s = noise(ctx, 0.18), f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = vary(900, 0.3);
+      s.connect(f).connect(env(ctx, t, 0.16, 0.03, gain * 0.7)); s.start(t);
+    },
+    slam(ctx, t, gain) { // body + mid crack
+      const s = noise(ctx, 0.3), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = vary(190, 0.25); f.Q.value = 1;
+      s.connect(f).connect(env(ctx, t, 0.28, 0.02, gain * 1.2)); s.start(t);
+      const o = ctx.createOscillator(); o.type = 'sine'; const f0 = vary(95, 0.2);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(f0 * 0.42, t + 0.4);
+      o.connect(env(ctx, t, 0.5, 0.01, gain * 0.9)); o.start(t); o.stop(t + 0.6);
+    },
+    thud(ctx, t, gain) { // short, tight kick-like hit (used in stutter runs)
+      const o = ctx.createOscillator(); o.type = 'sine'; const f0 = vary(130, 0.2);
+      o.frequency.setValueAtTime(f0, t); o.frequency.exponentialRampToValueAtTime(48, t + 0.12);
+      o.connect(env(ctx, t, vary(0.28, 0.2), 0.01, gain)); o.start(t); o.stop(t + 0.35);
+      const c = noise(ctx, 0.02), h = ctx.createBiquadFilter(); h.type = 'highpass'; h.frequency.value = 2500;
+      c.connect(h).connect(env(ctx, t, 0.02, 0.1, gain * 0.35)); c.start(t);
+    },
+  };
+  const TICK = { // UI clicks: very short, no low end
+    tick(ctx, t, gain) {
+      const s = noise(ctx, 0.03), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = vary(4500, 0.2); f.Q.value = 8;
+      s.connect(f).connect(env(ctx, t, 0.03, 0.05, gain * 0.9, vary(0, 0.4), 0)); s.start(t);
+    },
+    click(ctx, t, gain) {
+      const o = ctx.createOscillator(); o.type = 'square'; o.frequency.value = vary(2900, 0.15);
+      const f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 1800;
+      o.connect(f).connect(env(ctx, t, 0.022, 0.05, gain * 0.18)); o.start(t); o.stop(t + 0.03);
+    },
+    blipHi(ctx, t, gain) {
+      const o = ctx.createOscillator(); o.type = 'triangle'; o.frequency.setValueAtTime(vary(2400, 0.15), t);
+      o.frequency.exponentialRampToValueAtTime(3400, t + 0.04);
+      o.connect(env(ctx, t, 0.05, 0.08, gain * 0.3)); o.start(t); o.stop(t + 0.06);
+    },
+  };
+  const TYPE = { // keystrokes for letter-by-letter text
+    key(ctx, t, gain) {
+      const s = noise(ctx, 0.035), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = vary(2600, 0.35); f.Q.value = 3;
+      s.connect(f).connect(env(ctx, t, vary(0.035, 0.3), 0.08, gain * 0.45, vary(0, 0.5), 0)); s.start(t);
+    },
+  };
+  const RISER = { // builds tension; the cue time is where it ENDS (the reveal)
+    noiseRise(ctx, t, gain, len = 2) {
+      const a = Math.max(0.001, t - len), s = noise(ctx, len), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.Q.value = 1.6;
+      f.frequency.setValueAtTime(vary(300, 0.2), a); f.frequency.exponentialRampToValueAtTime(vary(7000, 0.15), t);
+      const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, a); g.gain.exponentialRampToValueAtTime(gain * 0.6, t - 0.02); g.gain.linearRampToValueAtTime(0.0001, t);
+      const p = ctx.createStereoPanner(); s.connect(f).connect(g).connect(p).connect(OUT); s.start(a);
+      if (VERB) { const sd = ctx.createGain(); sd.gain.value = 0.3; p.connect(sd).connect(VERB); }
+    },
+    toneRise(ctx, t, gain, len = 2) {
+      const a = Math.max(0.001, t - len);
+      [1, 1.5].forEach((m) => {
+        const o = ctx.createOscillator(); o.type = 'sawtooth';
+        o.frequency.setValueAtTime(vary(110, 0.1) * m, a); o.frequency.exponentialRampToValueAtTime(vary(880, 0.1) * m, t);
+        const f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.setValueAtTime(400, a); f.frequency.exponentialRampToValueAtTime(5000, t);
+        const g = ctx.createGain(); g.gain.setValueAtTime(0.0001, a); g.gain.exponentialRampToValueAtTime(gain * 0.12, t - 0.02); g.gain.linearRampToValueAtTime(0.0001, t);
+        o.connect(f).connect(g).connect(OUT); o.start(a); o.stop(t + 0.05);
+      });
+      RISER.noiseRise(ctx, t, gain * 0.6, len);
+    },
+  };
+  const SHIMMER = { // sparkly high arpeggio for the final reveal
+    sparkle(ctx, t, gain) {
+      const notes = pick([[1568, 2093, 2637, 3136], [1760, 2217, 2637, 3520], [1319, 1976, 2637, 3951]]);
+      notes.forEach((hz, i) => {
+        const o = ctx.createOscillator(); o.type = 'sine'; o.frequency.value = vary(hz, 0.01);
+        o.connect(env(ctx, t + i * 0.06, vary(1.1, 0.2), 0.01, gain * 0.16, (i % 2 ? 0.4 : -0.4), 0)); o.start(t + i * 0.06); o.stop(t + i * 0.06 + 1.4);
+      });
+    },
+  };
+  const STUTTER = { thud: IMPACT.thud }; // tight hits for rapid stutter cuts
+  const BUILTIN = { whoosh: WHOOSH, pop: POP, hit: HIT, impact: IMPACT, stutter: STUTTER, tick: TICK, type: TYPE, riser: RISER, shimmer: SHIMMER };
+  // How much of each type goes to the reverb, and its level relative to --sfx-volume
+  const SENDS = { whoosh: 0.15, pop: 0.05, hit: 0.2, impact: 0.35, stutter: 0.12, tick: 0, type: 0, riser: 0.3, shimmer: 0.6 };
+  const LEVEL = { whoosh: 1, pop: 1, hit: 1, impact: 1, stutter: 0.85, tick: 0.7, type: 0.55, riser: 0.9, shimmer: 1 };
 
-  // spec: { duration, cues:[{t,type}], sfx:{whoosh?:[b64…],pop?:[…],hit?:[…]}|'builtin'|null, music?:b64,
-  //         musicVolume, sfxVolume, seed? }
+  // spec: { duration, cues:[{t,type,len?}], sfx:{whoosh?:[b64…],impact?:[…],…}|'builtin'|null, music?:b64,
+  //         musicVolume, sfxVolume, seed?, reverb? }
   const renderAudio = async (spec) => {
     rnd = seeded(spec.seed ?? Date.now());
     const ctx = new OfflineAudioContext(2, Math.ceil(spec.duration * SR), SR);
+    buildBus(ctx, spec.reverb !== false);
     const next = {}; // type → function returning the next variant
     if (spec.sfx && spec.sfx !== 'builtin') {
       for (const [k, list] of Object.entries(spec.sfx)) {
@@ -141,29 +244,67 @@
     }
     for (const k of Object.keys(BUILTIN)) next[k] ||= bag(Object.values(BUILTIN[k]).map((fn) => ({ fn })));
 
-    for (const { t, type } of spec.cues) {
+    for (const { t, type, len } of spec.cues) {
       if (!spec.sfx || !next[type]) continue;
       const v = next[type]();
-      const gain = vary(spec.sfxVolume, 0.12);
+      const gain = vary(spec.sfxVolume * (LEVEL[type] ?? 1), 0.12);
+      SEND = SENDS[type] ?? 0.1;
       if (v.file) {
         const s = ctx.createBufferSource(); s.buffer = v.file;
         s.playbackRate.value = vary(1, 0.08); // slightly different pitch on every trigger
-        // the whoosh is centred on the move: it starts a little early
-        const at = Math.max(0, type === 'whoosh' ? t - 0.12 : t);
+        const dur = v.file.duration / s.playbackRate.value;
+        // whooshes are centred on the move (start a little early); risers END on the cue
+        const at = Math.max(0, type === 'whoosh' ? t - 0.12 : type === 'riser' ? t - dur : t);
         const g = ctx.createGain(); g.gain.value = gain;
-        const p = ctx.createStereoPanner(), dur = v.file.duration / s.playbackRate.value;
+        const p = ctx.createStereoPanner();
         p.pan.setValueAtTime(type === 'whoosh' ? 0.5 : 0, at); p.pan.linearRampToValueAtTime(type === 'whoosh' ? -0.5 : 0, at + dur);
-        s.connect(g).connect(p).connect(ctx.destination);
+        s.connect(g).connect(p).connect(OUT);
+        if (VERB && SEND) { const sd = ctx.createGain(); sd.gain.value = SEND; p.connect(sd).connect(VERB); }
         s.start(at);
-      } else v.fn(ctx, Math.max(0.001, t), gain);
+      } else v.fn(ctx, Math.max(0.001, t), gain, len);
     }
+    // Bed (music or built-in beat): fade in/out + sidechain-style ducking under every impact so the hits punch through
+    const bedGain = (v) => {
+      const g = ctx.createGain(), end = spec.duration;
+      g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(v, 0.8);
+      let lastDuck = -1;
+      for (const c of spec.cues.filter((c) => c.type === 'impact' && c.t > 0.9 && c.t < end - 1.6)) {
+        if (c.t - lastDuck < 0.4) continue; // keep the automation monotonic inside stutter runs
+        lastDuck = c.t;
+        g.gain.setValueAtTime(v, c.t - 0.01); g.gain.linearRampToValueAtTime(v * 0.45, c.t + 0.03);
+        g.gain.linearRampToValueAtTime(v, c.t + 0.35);
+      }
+      g.gain.setValueAtTime(v, Math.max(0.9, end - 1.5)); g.gain.linearRampToValueAtTime(0, end);
+      g.connect(OUT);
+      return g;
+    };
     if (spec.music) {
       const m = await decode(spec.music);
       const s = ctx.createBufferSource(); s.buffer = m; s.loop = m.duration < spec.duration;
-      const g = ctx.createGain(), v = spec.musicVolume, end = spec.duration;
-      g.gain.setValueAtTime(0, 0); g.gain.linearRampToValueAtTime(v, 0.8);
-      g.gain.setValueAtTime(v, Math.max(0.9, end - 1.5)); g.gain.linearRampToValueAtTime(0, end);
-      s.connect(g).connect(ctx.destination); s.start(0);
+      s.connect(bedGain(spec.musicVolume)); s.start(0);
+    } else if (spec.beat) {
+      // Minimal synthesised percussion bed (no rights): kick on the beat, hats on the off-beats, snare on 2 and 4
+      const bus = bedGain(spec.musicVolume * 1.4), b = 60 / spec.beat;
+      const hitAt = (t, build) => { const g = ctx.createGain(); g.connect(bus); build(g, t); };
+      for (let i = 0, x = 0; x < spec.duration - 0.25; i++, x = (i * b) / 2) {
+        if (i % 2 === 0) hitAt(x, (g, t) => { // kick
+          const o = ctx.createOscillator(); o.type = 'sine';
+          o.frequency.setValueAtTime(150, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.9, t + 0.005); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+          o.connect(g); o.start(t); o.stop(t + 0.32);
+        });
+        else hitAt(x, (g, t) => { // hat
+          const s = noise(ctx, 0.04), f = ctx.createBiquadFilter(); f.type = 'highpass'; f.frequency.value = 7000;
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.22, t + 0.003); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.04);
+          s.connect(f).connect(g); s.start(t);
+        });
+        if (i % 4 === 2) hitAt(x, (g, t) => { // snare / clap
+          const s = noise(ctx, 0.18), f = ctx.createBiquadFilter(); f.type = 'bandpass'; f.frequency.value = 1800; f.Q.value = 0.8;
+          g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.5, t + 0.004); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.16);
+          s.connect(f).connect(g); s.start(t);
+          if (VERB) { const sd = ctx.createGain(); sd.gain.value = 0.25; g.connect(sd).connect(VERB); }
+        });
+      }
     }
     return ctx.startRendering();
   };
@@ -196,7 +337,7 @@
     if (!(await VideoEncoder.isConfigSupported(cfg)).supported) throw new Error('This Chrome does not support H.264 encoding (WebCodecs).');
 
     let audio = null;
-    if (audioSpec && (audioSpec.sfx || audioSpec.music)) audio = await encodeAudio(await renderAudio(audioSpec));
+    if (audioSpec && (audioSpec.sfx || audioSpec.music || audioSpec.beat)) audio = await encodeAudio(await renderAudio(audioSpec));
 
     muxer = new Mp4Muxer.Muxer({
       target: new Mp4Muxer.ArrayBufferTarget(),

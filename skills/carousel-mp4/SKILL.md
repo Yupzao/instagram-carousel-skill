@@ -26,8 +26,10 @@ The final output is an **MP4**, not the PNGs.
    - With no files, the built-in effects already vary on their own (5 whooshes, 3 pops, 3 hits, with random pitch and length).
 6. **Render the MP4**:
    ```bash
-   node <ic>/scripts/video.mjs <output>/carousel.html <output>/carousel.mp4 [--reels] [--sfx=<output>/sounds] [--music=<output>/sounds/music.mp3]
+   node <ic>/scripts/video.mjs <output>/carousel.html <output>/carousel.mp4 [--reels] [--header="Small|Big"] [--beat=120 | --music=<output>/sounds/music.mp3 --bpm=<its bpm>] [--sfx=<output>/sounds]
    ```
+   The edit is reel-style by default (see `video.md` › Editing): stutter intro on the cover, transitions varied between cut/whip/zoom/pan (pan/whip wherever continuity crosses a seam), a sound on every cut, a riser into the final reveal. For Reels, use `--header` for the title band; the blurred background fill is automatic. Without music, `--beat=110–128` gives the edit a pulse and snaps the cuts to it.
+   - Optional AI footage: if the user has a Higgsfield key, `<ic>/scripts/higgsfield.mjs` can generate the photos (and short clips). Each generation spends their credits, so confirm each prompt first.
    No ffmpeg needed: it uses Chrome (GSAP + WebCodecs). About 30–60 s for 20–30 s of video. Run it in the background if it is long.
 7. **Deliver**:
    - `carousel.mp4` (H.264 + AAC, ready for Instagram/Reels)

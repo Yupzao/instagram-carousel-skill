@@ -10,6 +10,12 @@
 //   --music=<file>        background music (fade in/out; loops if short)
 //   --sfx-volume=0.8 --music-volume=0.35   --mute (no audio)
 //   --stills=1,3.5,6      only grabs JPEGs at those seconds, for checking
+// Editing (motion-design reel techniques):
+//   --transitions=auto|pan|whip|zoom|cut   default auto: varies the edit, keeps pan/whip where something crosses a seam
+//   --header="Small line|Big line"         fixed title in the top band (Reels format)
+//   --bpm=120             snaps transitions to the music's beat grid
+//   --beat=120            no music? adds a minimal synthesised beat bed (kick/hat/snare) and snaps the edit to it
+//   --no-stutter          no stutter-zoom intro   --no-bgfill   no blurred background fill in Reels   --dry   no reverb
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -102,9 +108,18 @@ try {
   await page.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
   for (let i = 0; i < 100 && (await page.evaluate('document.readyState')) !== 'complete'; i++) await sleep(100);
   log('page loaded');
+  await page.evaluate(`window.__videoOpts = ${JSON.stringify({
+    transitions: flags.transitions || 'auto',
+    stutter: !flags['no-stutter'],
+    bgfill: !flags['no-bgfill'],
+    bpm: flags.bpm ? Number(flags.bpm) : flags.beat ? Number(flags.beat === true ? 120 : flags.beat) : undefined,
+    header: typeof flags.header === 'string' ? flags.header : undefined,
+  })}`);
   const duration = await page.evaluate(fs.readFileSync(path.join(here, 'video', 'animate.js'), 'utf8'));
   const frames = Math.min(Math.ceil(duration * FPS), Number(flags['max-frames']) || Infinity);
   console.log(`Animation: ${duration.toFixed(1)}s · ${frames} frames · ${W}×${H} @ ${FPS}fps`);
+  console.log(`  edit: ${(await page.evaluate('__video.edit')).join(' · ')}`);
+  log('cues:', (await page.evaluate('__video.cues')).map((c) => `${c.t.toFixed(2)} ${c.type}`).join(', '));
 
   // Audio
   let audioSpec = null;
@@ -115,7 +130,7 @@ try {
       const dir = path.resolve(String(flags.sfx));
       sfx = {};
       for (const f of fs.readdirSync(dir).sort()) {
-        const m = f.match(/^(whoosh|pop|hit)[-_ ]?[\w-]*\.(mp3|wav|ogg|m4a|flac)$/i);
+        const m = f.match(/^(whoosh|pop|hit|impact|stutter|tick|type|riser|shimmer)[-_ ]?[\w-]*\.(mp3|wav|ogg|m4a|flac)$/i);
         if (m) (sfx[m[1].toLowerCase()] ||= []).push(b64(path.join(dir, f)));
       }
       console.log('  sounds:', Object.entries(sfx).map(([k, v]) => `${k}×${v.length}`).join(', ') || '(none in the folder; using the built-in ones)');
@@ -129,6 +144,8 @@ try {
       sfxVolume: Number(flags['sfx-volume'] ?? 0.8),
       musicVolume: Number(flags['music-volume'] ?? 0.35),
       seed: flags.seed !== undefined ? Number(flags.seed) : undefined,
+      reverb: !flags.dry,
+      beat: flags.beat && !flags.music ? Number(flags.beat === true ? 120 : flags.beat) : undefined,
     };
   }
 

@@ -42,11 +42,16 @@ Two skills for [Claude Code](https://claude.com/claude-code) (and for Claude on 
 - Automatic After Effects-style animation:
   - titles letter by letter or with a wipe;
   - staggered text and stickers that pop in with overshoot;
-  - Ken Burns on photos;
-  - camera move with motion blur between slides.
-- Optional fine-tuning with `data-anim` / `data-delay`.
-- 4:5 feed (1080×1350) or 9:16 Reels (`--reels`).
-- **Sound that doesn't repeat**: 5 whoosh, 3 pop and 3 hit variants, synthesised (no rights). Each trigger has a slightly different pitch, length and stereo pan, and the same variant never plays twice in a row.
+  - Ken Burns on photos.
+- **Reel-style edit**, modelled on fast-cut motion-design reels:
+  - stutter-zoom intro on the cover (visible from frame 0);
+  - transitions varied between hard cut (flash + punch-in + shake), whip pan, zoom-through and pan, keeping pan/whip wherever continuity crosses a seam;
+  - a riser that ends exactly on the final reveal;
+  - optional beat grid (`--bpm` / `--beat`) so every cut lands on the beat.
+- 4:5 feed (1080×1350) or 9:16 Reels (`--reels`) with a **blurred background fill** and an optional **title band** (`--header="Small|Big"`).
+- Optional fine-tuning with `data-anim` / `data-delay` / `data-transition`.
+- **Sound design**: an impact on every cut, stutter thuds, UI ticks, keystrokes for typed titles, whooshes, risers and a final shimmer, all synthesised (no rights). They go through a compressor → limiter bus with reverb, and the music or a built-in beat bed ducks under the hits. Each trigger varies in pitch, length and stereo pan, and the same variant never plays twice in a row.
+- **Higgsfield API** (optional, with your own key): generate the photos and short image-to-video clips with `scripts/higgsfield.mjs`.
 - **Openverse**: search for **CC0 / public domain** sounds and music (no credit required). You can use several files per type, which rotate without repeats.
 - **No ffmpeg**: the video is rendered by Chrome (GSAP + WebCodecs) as H.264 + AAC, with the `moov` atom at the start of the file.
 
@@ -72,6 +77,7 @@ Rendering to PNG/MP4 needs a local Chrome, so it works best in Claude Code.
 - **Node.js ≥ 22** (uses the native `fetch` and `WebSocket`)
 - **Google Chrome** or **Microsoft Edge** (detected automatically; or set `CHROME_PATH`)
 - Internet access for Google Fonts, GSAP (cdnjs), mp4-muxer (jsDelivr) and Openverse
+- Optional: a Higgsfield API key in `HIGGSFIELD_KEY` (`<key-id>:<key-secret>`) for AI images/clips
 
 ## Structure
 ```
@@ -87,6 +93,7 @@ skills/
 │       ├── video/animate.js      # GSAP choreography
 │       ├── video/encoder.html    # WebCodecs: H.264 + AAC, synthesised sound effects
 │       ├── sounds.mjs            # search/download CC0 sounds from Openverse
+│       ├── higgsfield.mjs        # Higgsfield API: AI images and image-to-video (your key)
 │       └── contrast.mjs          # WCAG contrast ratio
 └── carousel-mp4/
     └── SKILL.md                  # uses the skill above and delivers an MP4
@@ -95,7 +102,7 @@ skills/
 ## Using the scripts directly
 ```bash
 node skills/instagram-carousel/scripts/render.mjs carousel.html png/
-node skills/instagram-carousel/scripts/video.mjs carousel.html video.mp4 --reels --seed=7
+node skills/instagram-carousel/scripts/video.mjs carousel.html video.mp4 --reels --header="Social Media|Design that communicates" --beat=118
 node skills/instagram-carousel/scripts/sounds.mjs search "whoosh" --type=sfx
 node skills/instagram-carousel/scripts/contrast.mjs "#FFFFFF" "#2F4BDB" 46
 ```

@@ -14,7 +14,7 @@ The rules come from analysing real, well-performing carousels and from user feed
 - **Topic / content**: what to communicate, or the photos/data available.
 - **Goal**: reach (shares), saves (practical value), leads (comment a word → DM), sales, or portfolio.
 - **Brand**: @handle, colours, fonts, logo. If there is nothing, pick a system that fits the topic and say which one you picked.
-- **Images**: the user's photos, a free stock library, or none. Read `references/images.md`. **You do not generate images or invent photographs.**
+- **Images**: the user's photos, a free stock library, the Higgsfield API (if the user has a key; each generation needs their OK because it spends credits), or none. Read `references/images.md`. **Never invent photographs.**
 - **Language** of the copy (default: the user's language).
 
 If the request already has enough, go ahead without asking.
@@ -104,7 +104,7 @@ Fix and re-render until nothing Critical or High is left.
 To preview in a browser, open the HTML without a hash: all slides appear side by side, scaled down.
 
 ### 5b. Video version
-If the user asks for the carousel animated/as MP4 (or uses `/carousel-mp4`), follow `references/video.md`. No ffmpeg needed; sound comes from the built-in effects or from Openverse (CC0, no credit).
+If the user asks for the carousel animated/as MP4 (or uses `/carousel-mp4`), follow `references/video.md`: reel-style edit (stutter intro, varied transitions, sound on every cut, risers, beat grid), Reels layout with blurred fill and title band. No ffmpeg needed; sound comes from the built-in effects or from Openverse (CC0, no credit).
 
 ### 6. Deliver
 - `png/slide-XX.png`
