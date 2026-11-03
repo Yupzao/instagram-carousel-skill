@@ -126,4 +126,10 @@ For explainer videos with a narrator (e.g. the "28 dominoes vs the Eiffel Tower"
 3. `node <ic>/scripts/voice/join.mjs <output>`: joins the lines into `voice.wav` (with `--lead`/`--gap` pauses) and writes `timeline.js` → `window.TIMELINE = { total, lines: [{ start, end, text, words: [{ w, t }] }] }`.
 4. In the custom scene (`window.__scene`), load `timeline.js` and time everything from it: captions word by word (spoken words bright, upcoming dimmed, keywords in the pop colour), cuts on sentence starts, key visuals on key words. See `carousel-mp4/assets/eiffel-explainer/eiffel.html`.
 5. Render with `--voice=<output>/voice.wav`. Effects and music defaults drop under the voice (`--sfx-volume` 0.5, `--music-volume` 0.16).
-Other voices: the user's own recording (any WAV/MP3 via `--voice`), or a TTS service of their choice. Windows voices are free but sound synthetic; say so when delivering.
+**Neural voices (recommended): edge-tts.** Microsoft's neural voices (e.g. `en-US-BrianNeural`, `en-US-AndrewNeural`, `en-US-AriaNeural`, `en-GB-RyanNeural`; list with `python -m edge_tts --list-voices`) with word timing, no key:
+- Needs `pip install edge-tts` (ask the user before installing).
+- `python <ic>/scripts/voice/edge_voice.py <output> --voice=en-US-BrianNeural --rate=+8% --lead=0.35` → `voice.mp3` + `timeline.js` (the whole script in one call, so the delivery flows between sentences).
+- Render with `--voice=<output>/voice.mp3 --voice-at=0.35` (the same lead).
+- It uses the Edge read-aloud service unofficially: fine for drafts and personal use; for commercial work the same voices are on the official Azure Speech API (user's key).
+
+Other voices: the user's own recording (any WAV/MP3 via `--voice`), or a TTS service of their choice (ElevenLabs, OpenAI, Azure, Google, with the user's own key set as an environment variable). Windows voices (`tts.ps1`) are free and offline but sound synthetic; say so when delivering.
