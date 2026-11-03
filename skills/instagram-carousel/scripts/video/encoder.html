@@ -278,6 +278,12 @@
       g.connect(OUT);
       return g;
     };
+    if (spec.voice) { // voiceover: starts at 0, full level, on top of everything (the bed and effects sit under it)
+      const vo = await decode(spec.voice);
+      const s = ctx.createBufferSource(); s.buffer = vo;
+      const g = ctx.createGain(); g.gain.value = spec.voiceVolume ?? 1;
+      s.connect(g).connect(OUT); s.start(Math.max(0, spec.voiceAt || 0));
+    }
     if (spec.music) {
       const m = await decode(spec.music);
       const s = ctx.createBufferSource(); s.buffer = m; s.loop = m.duration < spec.duration;
@@ -337,7 +343,7 @@
     if (!(await VideoEncoder.isConfigSupported(cfg)).supported) throw new Error('This Chrome does not support H.264 encoding (WebCodecs).');
 
     let audio = null;
-    if (audioSpec && (audioSpec.sfx || audioSpec.music || audioSpec.beat)) audio = await encodeAudio(await renderAudio(audioSpec));
+    if (audioSpec && (audioSpec.sfx || audioSpec.music || audioSpec.beat || audioSpec.voice)) audio = await encodeAudio(await renderAudio(audioSpec));
 
     muxer = new Mp4Muxer.Muxer({
       target: new Mp4Muxer.ArrayBufferTarget(),

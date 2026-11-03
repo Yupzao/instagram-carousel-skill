@@ -118,3 +118,12 @@ If the page defines `window.__scene()`, `video.mjs` uses it instead of the autom
 - `node scripts/higgsfield.mjs video "<prompt>" clips/clip-1.mp4 --image=photos/shot-1.png --duration=5 --aspect=9:16` (default `higgsfield/cinema-studio/4.0`).
 - `node scripts/higgsfield.mjs run <model-path> '<json>' out.ext` for any other model in the Model API Reference.
 - Generated images go into the slides as `.media` backgrounds. Clips are not embedded by `video.mjs` yet: deliver them next to the MP4.
+
+## Voiceover (narrated explainers)
+For explainer videos with a narrator (e.g. the "28 dominoes vs the Eiffel Tower" example), the voice drives the edit:
+1. Write the script as a JSON array of sentences in `<output>/script.json`. One sentence = one beat of the edit. Check every number and fact you state.
+2. `powershell -ExecutionPolicy Bypass -File <ic>/scripts/voice/tts.ps1 -Dir <output>`: synthesises each sentence offline with a Windows voice (default "Microsoft Mark", `-Rate '+8%'`) and records the **start time of every word**.
+3. `node <ic>/scripts/voice/join.mjs <output>`: joins the lines into `voice.wav` (with `--lead`/`--gap` pauses) and writes `timeline.js` → `window.TIMELINE = { total, lines: [{ start, end, text, words: [{ w, t }] }] }`.
+4. In the custom scene (`window.__scene`), load `timeline.js` and time everything from it: captions word by word (spoken words bright, upcoming dimmed, keywords in the pop colour), cuts on sentence starts, key visuals on key words. See `carousel-mp4/assets/eiffel-explainer/eiffel.html`.
+5. Render with `--voice=<output>/voice.wav`. Effects and music defaults drop under the voice (`--sfx-volume` 0.5, `--music-volume` 0.16).
+Other voices: the user's own recording (any WAV/MP3 via `--voice`), or a TTS service of their choice. Windows voices are free but sound synthetic; say so when delivering.

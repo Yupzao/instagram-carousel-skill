@@ -10,6 +10,7 @@
 //   --seed=42             fixes the random sound variation (without a seed, every render sounds different)
 //   --music=<file>        background music (fade in/out; loops if short)
 //   --sfx-volume=0.8 --music-volume=0.35   --mute (no audio)
+//   --voice=<file>        voiceover track from t=0 (or --voice-at=seconds); lowers effects/music defaults under it
 //   --stills=1,3.5,6      only grabs JPEGs at those seconds, for checking
 // Editing (motion-design reel techniques):
 //   --transitions=auto|pan|whip|zoom|cut   default auto: varies the edit, keeps pan/whip where something crosses a seam
@@ -148,8 +149,11 @@ try {
       cues: (await page.evaluate('(window.__video && window.__video.cues) || []')).filter((c) => c.t < frames / FPS),
       sfx,
       music: flags.music ? b64(path.resolve(String(flags.music))) : null,
-      sfxVolume: Number(flags['sfx-volume'] ?? 0.8),
-      musicVolume: Number(flags['music-volume'] ?? 0.35),
+      voice: flags.voice ? b64(path.resolve(String(flags.voice))) : null,
+      voiceAt: Number(flags['voice-at'] || 0),
+      voiceVolume: Number(flags['voice-volume'] ?? 1),
+      sfxVolume: Number(flags['sfx-volume'] ?? (flags.voice ? 0.5 : 0.8)),
+      musicVolume: Number(flags['music-volume'] ?? (flags.voice ? 0.16 : 0.35)),
       seed: flags.seed !== undefined ? Number(flags.seed) : undefined,
       reverb: !flags.dry,
       beat: flags.beat && !flags.music ? Number(flags.beat === true ? 120 : flags.beat) : undefined,

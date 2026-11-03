@@ -1,0 +1,574 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>28 dominoes vs the Eiffel Tower</title>
+<!-- 16:9 motion-graphics explainer. Voiceover timing comes from timeline.js (word times from the TTS). -->
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=Space+Grotesk:wght@500;700&family=JetBrains+Mono:wght@500;700&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="timeline.js"></script>
+<style>
+  :root { --bg: #0b1220; --ink: #f3efe6; --pop: #ff8a2a; --blue: #4d94ff; --dom: #f2e6cf; }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); }
+  #stage { position: relative; width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+  #world { position: absolute; inset: 0; }
+  .layer { position: absolute; inset: 0; visibility: hidden; }
+  .head { position: absolute; left: 96px; top: 70px; font: 800 58px/1.05 'Syne', sans-serif; letter-spacing: -.01em; white-space: nowrap; text-shadow: 0 2px 20px rgba(0,0,0,.5); }
+  .head .k { color: var(--pop); }
+  .head .b { color: #0b1220; background: var(--blue); padding: 0 .18em; }
+  #hud { position: absolute; left: 96px; top: 168px; font: 700 50px/1.1 'JetBrains Mono', monospace; opacity: 0; }
+  #hud small { display: block; margin-top: 10px; font: 500 31px/1.3 'JetBrains Mono', monospace; color: var(--pop); }
+  #cap { position: absolute; left: 0; right: 0; bottom: 78px; text-align: center; font: 700 54px/1.15 'Space Grotesk', sans-serif; text-shadow: 0 2px 18px rgba(0,0,0,.7); }
+  #cap span { transition: none; }
+  #cap .k { color: var(--pop); }
+  #cap .f { opacity: .35; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 50; }
+  /* 28 */
+  #L28 { background: rgba(8,12,22,.86); }
+  #n28 { position: absolute; right: 150px; top: 120px; font: 800 470px/1 'Syne'; color: var(--pop); letter-spacing: -.04em; }
+  #minirow { position: absolute; left: 96px; bottom: 230px; height: 460px; width: 1100px; }
+  #minirow i { position: absolute; bottom: 0; background: var(--dom); border-radius: 2px; transform-origin: 50% 100%; box-shadow: inset -3px 0 0 rgba(0,0,0,.18); }
+  /* charts */
+  #charts svg { position: absolute; inset: 0; }
+  .lbl { font: 500 31px 'JetBrains Mono'; fill: #9fb0cc; }
+  .ttl { font: 800 52px 'Syne'; fill: var(--ink); }
+  .ttl tspan.k { fill: var(--pop); }
+  /* metaphor rows */
+  .row { position: absolute; left: 0; right: 0; height: 280px; }
+  .row .name { position: absolute; left: 96px; bottom: 6px; font: 700 44px 'Space Grotesk'; color: #c9d4e8; }
+  .dm { position: absolute; bottom: 0; background: linear-gradient(90deg, #f6ecd9, #e7d9bd); border-radius: 4px; transform-origin: 100% 100%;
+        box-shadow: 6px -5px 0 #c7b89c, 0 10px 18px rgba(0,0,0,.35); }
+  .dm::after { content: ''; position: absolute; left: 14%; right: 14%; top: 50%; height: 3px; background: rgba(0,0,0,.35); }
+  .ground { position: absolute; left: 0; right: 0; height: 2px; background: rgba(160,180,215,.35); }
+  .gapbox { position: absolute; bottom: 0; border: 3px solid var(--blue); background: rgba(77,148,255,.16); box-shadow: 0 0 60px rgba(77,148,255,.35) inset; }
+  .gapbox b { position: absolute; left: 0; right: 0; top: -92px; text-align: center; font: 800 72px 'Syne'; color: var(--blue); }
+  .gapbox em { position: absolute; left: 50%; top: calc(100% + 26px); transform: translateX(-50%); white-space: nowrap; font: 700 40px 'Space Grotesk'; font-style: normal; color: #dbe8ff; }
+  #endline { position: absolute; left: 0; right: 0; top: 190px; text-align: center; white-space: nowrap; font: 800 100px/1 'Syne'; letter-spacing: -.02em; opacity: 0; text-shadow: 0 4px 40px rgba(0,0,0,.6); }
+  #endline .k { color: var(--pop); }
+</style>
+</head>
+<body>
+<div id="stage">
+  <canvas id="world" width="1920" height="1080"></canvas>
+
+  <div class="layer" id="L28"><div id="minirow"></div><div id="n28">28</div></div>
+
+  <div class="layer" id="charts">
+    <svg viewBox="0 0 1920 1080">
+      <text class="ttl" x="96" y="250"><tspan class="k">×1.5</tspan> bigger, every step</text>
+      <g id="bars"></g>
+      <line x1="96" y1="840" x2="900" y2="840" stroke="#3a4a66" stroke-width="2"/>
+      <text class="lbl" x="96" y="884">#1</text><text class="lbl" x="840" y="884">#28</text>
+      <text class="ttl" x="1010" y="250" id="ettl"><tspan class="k">×5</tspan> energy, every step</text>
+      <g id="eaxis"></g>
+      <path id="eline" d="" fill="none" stroke="#ff8a2a" stroke-width="7" stroke-linecap="round"/>
+      <circle id="edot" r="12" fill="#ff8a2a"/>
+    </svg>
+  </div>
+
+  <div class="layer" id="meta"></div>
+
+  <div id="hud">#1 · 5 mm<small>1× your flick</small></div>
+  <div class="head" id="head"></div>
+  <div id="endline"></div>
+  <div id="cap"></div>
+  <div id="flash"></div>
+</div>
+
+<script>
+// ---------- data ----------
+const TL = window.TIMELINE;
+const H = (k) => 0.005 * Math.pow(1.5, k - 1);          // domino height (m)
+const X = (k) => 0.01 * (Math.pow(1.5, k - 1) - 1);     // left edge (m): next starts one height after
+const E = (k) => Math.pow(5.0625, k - 1);               // energy vs the first (≈ size⁴)
+const TOWER = { x: X(29), base: 125, h: 330 };          // Eiffel Tower: 330 m tall, 125 m base
+const ARC = { x: X(24) + 0.5 * H(24) + 8, w: 45, h: 50 };
+const MONT = { x: X(27) - 150, w: 50, h: 210 };
+
+const W = (line, word, nth = 0) => { // time of a word in a line
+  const ws = TL.lines[line].words.filter((w) => w.w.toLowerCase() === word.toLowerCase());
+  return (ws[nth] || ws[0] || { t: TL.lines[line].start }).t;
+};
+const S = (i) => TL.lines[i].start, END = (i) => TL.lines[i].end;
+
+// seeded random (stills and render must match)
+let seed = 7; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const stars = Array.from({ length: 170 }, () => ({ x: rnd() * 1920, y: rnd() * 640, r: rnd() * 1.6 + 0.4, p: rnd() * 6.28 }));
+const sparkles = Array.from({ length: 70 }, () => ({ u: rnd() * 2 - 1, v: rnd(), p: rnd() * 6.28 }));
+const windows = Array.from({ length: 220 }, () => rnd());
+
+// ---------- fall schedule: when each domino starts to fall ----------
+const ANCH = [[1, W(3, 'tall') + 0.35], [13, W(4, 'thirteenth') + 0.1], [20, W(4, 'energy')], [24, S(5) + 0.15], [27, S(6) + 0.2], [28, S(7) + 0.1], [29, W(7, 'brings')]];
+const F = (k) => { // fall start of domino k (k = 29 → the tower is hit)
+  for (let i = 0; i < ANCH.length - 1; i++) {
+    const [k0, t0] = ANCH[i], [k1, t1] = ANCH[i + 1];
+    if (k <= k1) return t0 + (t1 - t0) * (k - k0) / (k1 - k0);
+  }
+  return ANCH[ANCH.length - 1][1];
+};
+const HIT = F(29);
+const THC = Math.asin(0.5 / 1) ; // contact angle: gap to the next face is 0.5 h → 30°
+const angleOf = (k, t) => {
+  const f = F(k), c = F(k + 1), c2 = F(k + 2);
+  if (t <= f) return 0;
+  if (t < c) { const u = (t - f) / (c - f); return THC * u * u; }
+  if (k === 28) return THC + Math.min(1, (t - c) / 2.5) * 0.45;
+  const u = Math.min(1, (t - c) / Math.max(0.15, c2 - c));
+  return THC + (1.25 - THC) * (1 - (1 - u) * (1 - u));
+};
+const front = (t) => { // continuous index of the falling front
+  if (t < F(1)) return 1;
+  for (let k = 1; k <= 28; k++) if (t < F(k + 1)) return k + (t - F(k)) / (F(k + 1) - F(k));
+  return 29;
+};
+
+// ---------- camera ----------
+const lerp = (a, b, u) => a + (b - a) * u;
+const ease = (u) => u * u * (3 - 2 * u);
+const lerpLog = (a, b, u) => Math.exp(lerp(Math.log(a), Math.log(b), u));
+const TOWER_VIEW = { H: 470, cx: TOWER.x + 40 };
+const camAt = (t) => {
+  const s4 = S(3) - 0.25, chain = F(1);
+  if (t < S(2) - 0.2) return { ...TOWER_VIEW, H: lerp(520, 455, Math.min(1, t / (S(2) - 0.2))) };
+  if (t < s4) return null; // demo shot
+  if (t < chain) { // macro on domino 1, after a powers-of-ten zoom from the tower
+    const u = Math.min(1, (t - s4) / (chain - s4));
+    return { H: lerpLog(0.07, 0.03, ease(u)), cx: X(1) + 0.004 }; // hard cut in, then a slow push
+  }
+  if (t < HIT - 2.2) {
+    const n = front(t) + 0.7;
+    const k = Math.floor(n), fr = n - k;
+    const h = lerpLog(H(k), H(k + 1), fr);
+    const x = lerp(X(k), X(k + 1), fr);
+    return { H: Math.max(0.03, 2.5 * h), cx: x + 0.35 * h };
+  }
+  if (t < S(8) - 0.3) { // ease into the tower view for the hit
+    const tA = HIT - 2.2, u = ease(Math.min(1, (t - tA) / 2.0));
+    const n = front(tA) + 0.7, k = Math.floor(n), fr = n - k;
+    const h = lerpLog(H(k), H(k + 1), fr);
+    const a = { H: 2.5 * h, cx: lerp(X(k), X(k + 1), fr) + 0.35 * h };
+    return { H: lerpLog(a.H, 760, u), cx: lerp(a.cx, TOWER.x - 60, u) };
+  }
+  if (t >= S(12) - 0.4) return { H: lerp(640, 600, Math.min(1, (t - S(12)) / 4)), cx: TOWER.x - 180 };
+  return null;
+};
+
+// ---------- drawing ----------
+const cv = document.getElementById('world'), g = cv.getContext('2d');
+const GY = 860; // ground line in px
+let SC = 1, CX = 0; // px per metre, camera centre (m)
+const px = (x) => 960 + (x - CX) * SC, py = (y) => GY - y * SC;
+
+const sky = (t, dim = 1) => {
+  const gr = g.createLinearGradient(0, 0, 0, GY);
+  gr.addColorStop(0, '#070b16'); gr.addColorStop(0.75, '#111b31'); gr.addColorStop(1, '#1d2944');
+  g.fillStyle = gr; g.fillRect(0, 0, 1920, 1080);
+  for (const s of stars) { g.globalAlpha = (0.35 + 0.35 * Math.sin(t * 1.3 + s.p)) * dim; g.fillStyle = '#dfe8ff'; g.fillRect(s.x, s.y, s.r, s.r); }
+  g.globalAlpha = 1;
+  const glow = g.createLinearGradient(0, GY - 160, 0, GY);
+  glow.addColorStop(0, 'rgba(255,170,90,0)'); glow.addColorStop(1, 'rgba(255,150,70,.18)');
+  g.fillStyle = glow; g.fillRect(0, GY - 160, 1920, 160);
+  g.fillStyle = '#080c16'; g.fillRect(0, GY, 1920, 1080 - GY);
+  g.fillStyle = 'rgba(160,180,215,.28)'; g.fillRect(0, GY, 1920, 2);
+};
+
+let LABELS = [];
+const label = (text, x, y, alpha = 1, align = 'left') => { LABELS.push([text, x, y, alpha, align]); };
+const flushLabels = () => { for (const l of LABELS) drawLabel(...l); LABELS = []; };
+const drawLabel = (text, x, y, alpha = 1, align = 'left') => {
+  g.globalAlpha = alpha; g.font = "500 31px 'JetBrains Mono'"; g.fillStyle = '#c9d4e8'; g.textAlign = align; g.fillText(text, x, y); g.globalAlpha = 1; g.textAlign = 'left';
+};
+
+const drawArc = () => {
+  const x0 = px(ARC.x), w = ARC.w * SC, h = ARC.h * SC;
+  if (w < 2 || x0 > 1920 || x0 + w < 0) return;
+  g.fillStyle = '#1a2540';
+  g.fillRect(x0, py(ARC.h), w, h);
+  g.fillStyle = '#080c16';
+  const aw = 14.6 * SC, ah = 29 * SC, ax = x0 + (w - aw) / 2;
+  g.beginPath(); g.moveTo(ax, GY); g.lineTo(ax, GY - ah + aw / 2); g.arc(ax + aw / 2, GY - ah + aw / 2, aw / 2, Math.PI, 0); g.lineTo(ax + aw, GY); g.fill();
+  g.fillStyle = '#24304e'; g.fillRect(x0 - 2 * SC, py(ARC.h), w + 4 * SC, 3 * SC);
+  if (h > 60) label('Arc de Triomphe · 50 m', x0 + w / 2, py(ARC.h) - 18, Math.min(1, (h - 60) / 80), 'center');
+};
+const drawMont = () => {
+  const x0 = px(MONT.x), w = MONT.w * SC, h = MONT.h * SC;
+  if (w < 2 || x0 > 1920 || x0 + w < 0) return;
+  g.fillStyle = '#141e35'; g.fillRect(x0, py(MONT.h), w, h);
+  if (w > 18) {
+    let i = 0;
+    for (let yy = 4; yy < MONT.h - 4; yy += 6) for (let xx = 4; xx < MONT.w - 4; xx += 7) {
+      if (windows[i++ % windows.length] > 0.55) { g.fillStyle = 'rgba(255,205,130,.55)'; g.fillRect(px(MONT.x + xx), py(yy + 2), Math.max(1, 3 * SC), Math.max(1, 2 * SC)); }
+    }
+  }
+  if (h > 60) label('Montparnasse Tower · 210 m', x0 + w / 2, py(MONT.h) - 18, Math.min(1, (h - 60) / 80), 'center');
+};
+
+// Eiffel Tower silhouette (metres, x from the axis, y up), right half; mirrored for the left
+const PROF = [[62.5, 0], [56, 14], [48, 33], [41, 55], [42.5, 57], [42.5, 60], [33, 76], [24, 98], [19, 114], [20, 116], [20, 119], [14, 150], [10, 185], [7, 225], [5, 262], [4.5, 276], [5.5, 277], [5.5, 280], [3.4, 296], [2.4, 312], [1.2, 322], [0.5, 330]];
+const ARCH = [[37, 0], [33, 12], [26, 23], [16, 31], [0, 34]];
+const drawTower = (t, tilt = 0) => {
+  const cxm = TOWER.x + TOWER.base / 2;
+  const sx = px(cxm), h = TOWER.h * SC;
+  if (h < 3) return;
+  g.save();
+  const pivot = px(TOWER.x + TOWER.base); g.translate(pivot, GY); g.rotate(tilt); g.translate(-pivot, -GY);
+  const P = (x, y) => [px(cxm + x), py(y)];
+  g.beginPath();
+  PROF.forEach(([x, y], i) => { const [a, b] = P(-x, y); i ? g.lineTo(a, b) : g.moveTo(a, b); });
+  [...PROF].reverse().forEach(([x, y]) => { const [a, b] = P(x, y); g.lineTo(a, b); });
+  ARCH.forEach(([x, y]) => { const [a, b] = P(x, y); g.lineTo(a, b); });
+  [...ARCH].reverse().forEach(([x, y]) => { const [a, b] = P(-x, y); g.lineTo(a, b); });
+  g.closePath();
+  const gr = g.createLinearGradient(0, py(330), 0, GY);
+  gr.addColorStop(0, '#d98a3a'); gr.addColorStop(0.5, '#a5582a'); gr.addColorStop(1, '#5e2f19');
+  g.fillStyle = gr; g.fill();
+  // lattice
+  g.save(); g.clip(); g.strokeStyle = 'rgba(30,12,4,.55)'; g.lineWidth = Math.max(1, 0.6 * SC);
+  for (let y = 0; y < 330; y += 9) { g.beginPath(); g.moveTo(px(cxm - 70), py(y)); g.lineTo(px(cxm + 70), py(y + 9)); g.moveTo(px(cxm + 70), py(y)); g.lineTo(px(cxm - 70), py(y + 9)); g.stroke(); }
+  g.restore();
+  // platforms
+  g.fillStyle = '#3a1d0f';
+  [[57, 44], [116, 22], [276, 6]].forEach(([y, hw]) => g.fillRect(px(cxm - hw), py(y + 3), 2 * hw * SC, Math.max(2, 3 * SC)));
+  // sparkles + beacon
+  for (const s of sparkles) {
+    const y = s.v * 300, hw = y < 57 ? lerp(60, 41, y / 57) : y < 116 ? lerp(41, 20, (y - 57) / 59) : lerp(20, 4, (y - 116) / 184);
+    const a = 0.5 + 0.5 * Math.sin(t * 9 + s.p * 3);
+    if (a > 0.82) { g.fillStyle = `rgba(255,240,200,${a})`; g.beginPath(); g.arc(px(cxm + s.u * hw * 0.8), py(y), Math.max(1.2, 0.7 * SC), 0, 6.28); g.fill(); }
+  }
+  const bg = g.createRadialGradient(px(cxm), py(330), 0, px(cxm), py(330), 40);
+  bg.addColorStop(0, 'rgba(255,230,170,.9)'); bg.addColorStop(1, 'rgba(255,230,170,0)');
+  g.fillStyle = bg; g.beginPath(); g.arc(px(cxm), py(330), 40, 0, 6.28); g.fill();
+  g.restore();
+  if (h > 80 && tilt < 0.05) label('Eiffel Tower · 330 m', sx, py(330) - 34, Math.min(1, (h - 80) / 120), 'center');
+};
+
+const PIPS = { 1: [[0, 0]], 2: [[-1, -1], [1, 1]], 3: [[-1, -1], [0, 0], [1, 1]], 4: [[-1, -1], [1, -1], [-1, 1], [1, 1]], 5: [[-1, -1], [1, -1], [0, 0], [-1, 1], [1, 1]], 6: [[-1, -1], [1, -1], [-1, 0], [1, 0], [-1, 1], [1, 1]] };
+const drawDomino = (x, h, ang, k, glow = 0) => {
+  const w = 0.5 * h * SC, hh = h * SC, d = 0.12 * h * SC;
+  if (hh < 0.6) return;
+  const pv = px(x) + w;
+  if (pv - w - hh > 1960 || pv + hh < -40) return;
+  g.save(); g.translate(pv, GY); g.rotate(ang);
+  // shadow
+  g.fillStyle = 'rgba(0,0,0,.35)'; g.fillRect(-w, -2, w + d, 4);
+  // side + top faces
+  g.fillStyle = '#bfae90'; g.beginPath(); g.moveTo(0, -hh); g.lineTo(d * 0.8, -hh - d * 0.6); g.lineTo(d * 0.8, -d * 0.6); g.lineTo(0, 0); g.fill();
+  g.fillStyle = '#fff6e6'; g.beginPath(); g.moveTo(-w, -hh); g.lineTo(-w + d * 0.8, -hh - d * 0.6); g.lineTo(d * 0.8, -hh - d * 0.6); g.lineTo(0, -hh); g.fill();
+  const gr = g.createLinearGradient(-w, 0, 0, 0); gr.addColorStop(0, '#f7eedd'); gr.addColorStop(1, '#e4d5b8');
+  g.fillStyle = gr; g.fillRect(-w, -hh, w, hh);
+  if (glow > 0) { g.shadowColor = 'rgba(255,160,60,.9)'; g.shadowBlur = 40 * glow; g.strokeStyle = `rgba(255,170,80,${0.8 * glow})`; g.lineWidth = 3; g.strokeRect(-w, -hh, w, hh); g.shadowBlur = 0; }
+  if (w > 16) { // divider + pips
+    g.fillStyle = 'rgba(40,30,20,.55)'; g.fillRect(-w * 0.85, -hh / 2 - Math.max(1, hh * 0.006), w * 0.7, Math.max(2, hh * 0.012));
+    const r = Math.max(1.5, w * 0.07);
+    [[(k % 6) + 1, -hh * 0.75], [((k * 5) % 6) + 1, -hh * 0.25]].forEach(([n, cy]) => {
+      for (const [a, b] of PIPS[n]) { g.beginPath(); g.arc(-w / 2 + a * w * 0.26, cy + b * hh * 0.13, r, 0, 6.28); g.fill(); }
+    });
+  }
+  g.restore();
+};
+
+const chainWorld = (t, opts = {}) => {
+  const cam = opts.cam; SC = 860 * 0.82 / cam.H; CX = cam.cx;
+  sky(t);
+  if (!opts.gapAt) drawMont(); // the finale keeps only the tower, so the gap label stays clear
+  drawArc();
+  const tilt = opts.tilt ?? (t > HIT ? Math.min(0.95, Math.pow((t - HIT) / 2.6, 2) * 0.95) : 0);
+  drawTower(t, tilt);
+  for (let k = 1; k <= 28; k++) {
+    if (opts.gapAt && k >= opts.gapAt[0] && k <= opts.gapAt[1]) continue;
+    const ang = opts.angle ? opts.angle(k) : angleOf(k, t);
+    const fr = front(t), glow = !opts.angle && Math.abs(fr - k) < 1 ? 1 - Math.abs(fr - k) : 0;
+    drawDomino(X(k), H(k), ang, k, glow);
+  }
+  if (opts.gapAt) { // the gap, drawn as a blue box
+    const x0 = px(X(opts.gapAt[0]) - 2), x1 = px(X(opts.gapAt[1] + 1) - 4), top = py(H(opts.gapAt[1]) * 1.05);
+    g.fillStyle = 'rgba(77,148,255,.14)'; g.fillRect(x0, top, x1 - x0, GY - top);
+    g.strokeStyle = '#4d94ff'; g.lineWidth = 3; g.strokeRect(x0, top, x1 - x0, GY - top);
+    g.font = "800 64px 'Syne'"; g.fillStyle = '#4d94ff'; g.textAlign = 'center'; g.fillText('gap', (x0 + x1) / 2, top - 24); g.textAlign = 'left';
+  }
+  flushLabels();
+  // dust when the tower is hit
+  if (t > HIT && t < HIT + 3 && !opts.angle) {
+    const u = (t - HIT) / 3;
+    for (let i = 0; i < 60; i++) {
+      const a = (i / 60) * Math.PI, r = (40 + 260 * u) * (0.6 + 0.4 * Math.sin(i * 7.1));
+      g.fillStyle = `rgba(210,190,160,${0.35 * (1 - u)})`;
+      g.beginPath(); g.arc(px(TOWER.x) + Math.cos(a) * r, GY - Math.sin(a) * r * 0.35, 18 + 30 * u, 0, 6.28); g.fill();
+    }
+  }
+};
+
+const demo = (t) => { // two dominoes: one topples a bigger one
+  sky(t, 0.6);
+  SC = 860 * 0.82 / 2.6; CX = 0.9;
+  const t0 = W(2, 'topple'), tc = t0 + 0.55;
+  const aA = t < t0 ? 0 : t < tc ? THC * ((t - t0) / 0.55) ** 2 : THC + Math.min(1, (t - tc) / 0.8) * (1.2 - THC);
+  const aB = t < tc ? 0 : Math.min(1.25, 1.25 * ((t - tc) / 0.9) ** 2);
+  drawDomino(0, 1, aA, 3, 0);
+  drawDomino(1.0, 1.5, aB, 5, t > tc - 0.1 && t < tc + 0.4 ? 1 : 0);
+  // dimension markers
+  const mark = (x, h, txt, col) => {
+    g.strokeStyle = col; g.fillStyle = col; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(px(x), GY); g.lineTo(px(x), py(h)); g.moveTo(px(x) - 12, py(h)); g.lineTo(px(x) + 12, py(h)); g.moveTo(px(x) - 12, GY); g.lineTo(px(x) + 12, GY); g.stroke();
+    g.font = "700 40px 'JetBrains Mono'"; g.textAlign = 'right'; g.fillText(txt, px(x) - 22, py(h / 2) + 14); g.textAlign = 'left';
+  };
+  if (aA < 0.05) mark(-0.12, 1, '1×', '#c9d4e8');
+  if (aB < 0.05) mark(2.05, 1.5, '1.5×', '#ff8a2a');
+};
+
+const macroExtras = (t) => { // 5 mm ruler + the flick
+  const x1 = X(1);
+  g.strokeStyle = '#ff8a2a'; g.fillStyle = '#ff8a2a'; g.lineWidth = 3;
+  const xr = px(x1 - 0.002);
+  g.beginPath(); g.moveTo(xr, GY); g.lineTo(xr, py(0.005)); g.moveTo(xr - 12, py(0.005)); g.lineTo(xr + 12, py(0.005)); g.moveTo(xr - 12, GY); g.lineTo(xr + 12, GY); g.stroke();
+  g.font = "700 44px 'JetBrains Mono'"; g.textAlign = 'right'; g.fillText('5 mm', xr - 24, py(0.0025) + 16); g.textAlign = 'left';
+  const tf = F(1) - 0.35; // flick: an orange swipe hitting the top of domino 1
+  if (t > tf && t < F(1) + 0.3) {
+    const u = Math.min(1, (t - tf) / 0.35);
+    const x = lerp(px(x1 - 0.012), px(x1), u), y = py(0.0048);
+    g.globalAlpha = 1 - Math.max(0, (t - F(1)) / 0.3);
+    g.lineWidth = 10; g.lineCap = 'round'; g.beginPath(); g.moveTo(x - 160 * (1 - u * 0.3), y - 30); g.quadraticCurveTo(x - 60, y - 10, x, y); g.stroke();
+    g.beginPath(); g.arc(x, y, 14, 0, 6.28); g.fill(); g.globalAlpha = 1;
+  }
+};
+
+// ---------- captions (word by word, synced to the voice) ----------
+const KEY = new Set(['eiffel', 'tower', 'twenty-eight', 'dominoes', 'half', 'five', 'millimetres', 'thirteenth', 'sixty-five', 'centimetres', 'million', 'energy',
+  'twenty-fourth', 'arc', 'triomphe', 'twenty-seventh', 'montparnasse', 'twenty-eighth', 'two', 'hundred', 'eighty-four', 'compounding', 'small', 'mistake', 'rumour', 'morning',
+  'gap', 'slack', 'bank', 'calendar', 'pause', 'fall', 'flick', 'topple', 'bigger']);
+const chunks = TL.lines.map((ln) => { const out = []; for (let i = 0; i < ln.words.length; i += 4) out.push(ln.words.slice(i, i + 4)); return out; });
+const cap = document.getElementById('cap');
+let capKey = '';
+const caption = (t) => {
+  let html = '';
+  for (let i = 0; i < TL.lines.length; i++) {
+    const ln = TL.lines[i];
+    if (t < ln.start - 0.05 || t > ln.end + 0.35) continue;
+    const ch = chunks[i].find((c, j) => { const nx = chunks[i][j + 1]; return !nx || t < nx[0].t - 0.02; }) || chunks[i][0];
+    html = ch.map((w) => `<span class="${KEY.has(w.w.toLowerCase().replace(/[^a-z-]/g, '')) ? 'k' : ''}${t < w.t - 0.02 ? ' f' : ''}">${w.w}</span>`).join(' ');
+  }
+  if (html !== capKey) { cap.innerHTML = html; capKey = html; }
+};
+
+// ---------- HUD ----------
+const hud = document.getElementById('hud');
+const fmtH = (m) => (m < 0.01 ? `${(m * 1000).toFixed(0)} mm` : m < 1 ? `${(m * 100).toFixed(0)} cm` : m < 10 ? `${m.toFixed(1)} m` : `${Math.round(m)} m`);
+const fmtE = (e) => {
+  const units = [[1e18, 'quintillion'], [1e15, 'quadrillion'], [1e12, 'trillion'], [1e9, 'billion'], [1e6, 'million'], [1e3, 'thousand']];
+  for (const [v, n] of units) if (e >= v) return `${(e / v).toFixed(e / v < 10 ? 1 : 0)} ${n}×`;
+  return `${Math.round(e)}×`;
+};
+let hudKey = '';
+const hudUpdate = (t) => {
+  const k = Math.max(1, Math.min(28, Math.floor(front(t))));
+  const html = `#${k} · ${fmtH(H(k))}<small>${fmtE(E(k))} your flick</small>`;
+  if (html !== hudKey) { hud.innerHTML = html; hudKey = html; }
+};
+
+// ---------- render ----------
+const render = (t) => {
+  const cam = camAt(t);
+  if (t >= S(12) - 0.4) { // the finale: a gap, and the tower stays up
+    chainWorld(t, { cam, tilt: 0, gapAt: [26, 27], angle: (k) => (k < 26 ? 1.25 : 0) });
+  } else if (cam) {
+    chainWorld(t, { cam });
+    if (t > S(3) - 0.25 && t < F(1) + 1.2) macroExtras(t);
+  } else if (t < S(3)) demo(t);
+  else { // charts and metaphor scenes sit on a dim sky
+    sky(t, 0.5);
+  }
+  caption(t);
+  if (t >= F(1) - 0.2 && t < S(8) - 0.3) hudUpdate(t);
+};
+
+// ---------- timeline ----------
+window.__scene = async () => {
+  await document.fonts.ready;
+  const tl = gsap.timeline({ paused: true });
+  const cues = [];
+  const cue = (t, type, extra = {}) => cues.push({ t: Math.max(0, t), type, ...extra });
+  const head = document.getElementById('head');
+  const D = TL.total;
+
+  // headlines: [time, html, out]
+  const HEADS = [
+    [0.25, 'One flick could topple <span class="k">the Eiffel Tower.</span>', S(1) - 0.1],
+    [S(2), 'One can topple a <span class="k">bigger</span> one.', S(3) - 0.3],
+    [S(3), 'Start at <span class="k">5 mm.</span>', W(4, 'thirteenth')],
+    [S(8) + 0.1, '', S(9) - 0.2],
+    [S(9) + 0.05, 'Small things don’t stay <span class="k">small.</span>', S(10) - 0.2],
+    [S(10) + 0.05, 'The fix: <span class="b">a gap.</span>', S(11) - 0.15],
+    [S(11) + 0.05, 'In life, that gap is <span class="b">slack.</span>', S(12) - 0.3],
+  ];
+  HEADS.forEach(([t0, html, t1]) => {
+    if (!html) return;
+    tl.call(() => { head.innerHTML = html; }, null, t0 - 0.01);
+    tl.fromTo(head, { y: 30, opacity: 0, filter: 'blur(10px)' }, { y: 0, opacity: 1, filter: 'blur(0px)', duration: 0.45, ease: 'power3.out', immediateRender: false }, t0);
+    tl.to(head, { opacity: 0, y: -20, duration: 0.25, ease: 'power2.in' }, t1 - 0.25);
+    cue(t0, 'tick');
+  });
+  // headline content must also be right when seeking backwards (stills): set it from the time
+  const headAt = (t) => { let h = ''; for (const [t0, html] of HEADS) if (t >= t0 - 0.01) h = html; return h; };
+
+  // hook: the tower on screen, words slam
+  cue(0.25, 'impact');
+  const flash = document.getElementById('flash');
+  const flashAt = (t, a = 0.7) => tl.fromTo(flash, { opacity: a }, { opacity: 0, duration: 0.3, ease: 'power2.out', immediateRender: false }, t);
+
+  // 28
+  const L28 = document.getElementById('L28'), row = document.getElementById('minirow');
+  for (let k = 1; k <= 28; k++) {
+    const h = Math.max(3, 440 * Math.pow(1.5, k - 28)), w = Math.max(2, h * 0.5), x = 1060 * Math.pow((k - 1) / 27, 1.6);
+    const i = document.createElement('i'); i.style.cssText = `left:${x}px;height:${h}px;width:${w}px`; row.appendChild(i);
+  }
+  const t28 = W(1, 'twenty-eight');
+  tl.set(L28, { visibility: 'visible' }, S(1) - 0.05);
+  tl.fromTo('#n28', { scale: 2.6, opacity: 0, filter: 'blur(18px)' }, { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 0.38, ease: 'power4.out', immediateRender: false }, t28);
+  tl.fromTo(row.children, { scaleY: 0 }, { scaleY: 1, duration: 0.5, ease: 'back.out(1.6)', stagger: 0.035, immediateRender: false }, S(1));
+  tl.to('#stage', { keyframes: [{ x: 14, y: -8 }, { x: -12, y: 6 }, { x: 8, y: -4 }, { x: 0, y: 0 }], duration: 0.28 }, t28 + 0.02);
+  cue(t28, 'impact');
+  tl.set(L28, { visibility: 'hidden' }, S(2) - 0.15);
+  flashAt(S(2) - 0.15, 0.5); cue(S(2) - 0.25, 'whoosh');
+
+  // demo contact
+  cue(W(2, 'topple') + 0.55, 'pop');
+  // zoom into 5 mm
+  cue(S(3) - 0.3, 'whoosh'); cue(S(3) + 0.55, 'riser', { len: 0.9 });
+  flashAt(S(3) - 0.25, 0.65);
+  cue(F(1) - 0.05, 'pop'); // the flick
+  // chain clacks
+  for (let k = 1; k <= 28; k++) cue(F(k + 1), k <= 12 ? 'tick' : k <= 22 ? 'pop' : 'hit');
+  cue(HIT, 'riser', { len: 2.4 }); cue(HIT, 'impact'); cue(HIT + 0.35, 'impact');
+  tl.to('#stage', { keyframes: [{ x: 22, y: -12 }, { x: -18, y: 10 }, { x: 12, y: -6 }, { x: -6, y: 3 }, { x: 0, y: 0 }], duration: 0.5 }, HIT);
+  tl.to('#hud', { opacity: 1, duration: 0.3 }, F(1) - 0.2);
+  tl.to('#hud', { opacity: 0, duration: 0.3 }, S(8) - 0.6);
+
+  // charts
+  const C = document.getElementById('charts'), bars = document.getElementById('bars');
+  for (let k = 1; k <= 28; k++) {
+    const h = Math.max(2, 520 * Math.pow(1.5, k - 28)), x = 100 + (k - 1) * 28.5;
+    const r = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+    r.setAttribute('x', x); r.setAttribute('y', 840 - h); r.setAttribute('width', 21); r.setAttribute('height', h); r.setAttribute('fill', k === 28 ? '#ff8a2a' : '#f2e6cf'); r.setAttribute('rx', 2);
+    r.style.transformOrigin = `${x + 10}px 840px`; bars.appendChild(r);
+  }
+  const ax = document.getElementById('eaxis'), Y = (lg) => 840 - lg * 28;
+  ['', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion'].forEach((n, i) => {
+    if (!n) return;
+    const y = Y(i * 3);
+    ax.insertAdjacentHTML('beforeend', `<line x1="1010" x2="1824" y1="${y}" y2="${y}" stroke="#25324d" stroke-width="2"/><text class="lbl" x="1010" y="${y - 10}">${n}</text>`);
+  });
+  ax.insertAdjacentHTML('beforeend', `<line x1="1010" y1="840" x2="1824" y2="840" stroke="#3a4a66" stroke-width="2"/>`);
+  let d = ''; for (let k = 1; k <= 28; k++) d += `${k === 1 ? 'M' : 'L'}${1010 + (k - 1) * 30} ${Y(Math.log10(E(k)))} `;
+  const eline = document.getElementById('eline'); eline.setAttribute('d', d);
+  const len = eline.getTotalLength(); eline.style.strokeDasharray = len; eline.style.strokeDashoffset = len;
+  const edot = document.getElementById('edot'); edot.setAttribute('cx', 1010); edot.setAttribute('cy', 840);
+  const tC = S(8) - 0.3, tE = W(8, 'carries');
+  tl.set(C, { visibility: 'visible' }, tC); flashAt(tC, 0.6); cue(tC - 0.1, 'whoosh');
+  tl.fromTo(C, { opacity: 0, scale: 1.08 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'power3.out', immediateRender: false }, tC);
+  tl.fromTo(bars.children, { scaleY: 0 }, { scaleY: 1, duration: 0.45, ease: 'power3.out', stagger: 0.05, immediateRender: false }, tC + 0.3);
+  tl.fromTo('#ettl, #eaxis', { opacity: 0 }, { opacity: 1, duration: 0.4, immediateRender: false }, tE - 0.4);
+  const prog = { u: 0 };
+  tl.to(prog, { u: 1, duration: 2.0, ease: 'power2.inOut', onUpdate: () => {
+    eline.style.strokeDashoffset = len * (1 - prog.u);
+    const p = eline.getPointAtLength(len * prog.u); edot.setAttribute('cx', p.x); edot.setAttribute('cy', p.y);
+  } }, tE);
+  const tComp = W(8, 'compounding');
+  cue(tComp, 'impact');
+  tl.call(() => {}, null, tComp);
+  tl.to(C, { opacity: 0, scale: 0.96, filter: 'blur(14px)', duration: 0.3, ease: 'power2.in' }, S(9) - 0.35);
+  tl.set(C, { visibility: 'hidden' }, S(9) - 0.05);
+
+  // metaphor: three chains that grow
+  const M = document.getElementById('meta');
+  const rowsDef = [['a mistake', 'mistake', 230], ['a rumour', 'rumour', 450], ['a bad morning', 'morning', 670]];
+  const rowEls = rowsDef.map(([name, word, top], r) => {
+    const el = document.createElement('div'); el.className = 'row'; el.style.cssText = `top:${top}px;height:220px`;
+    el.innerHTML = `<div class="ground" style="bottom:0"></div><div class="name">${name}</div>`;
+    let x = 520; const doms = [];
+    for (let i = 0; i < 9; i++) {
+      const h = 26 * Math.pow(1.28, i), w = h * 0.42;
+      const dm = document.createElement('div'); dm.className = 'dm'; dm.style.cssText = `left:${x}px;width:${w}px;height:${h}px`;
+      el.appendChild(dm); doms.push(dm); x += w + h * 0.62;
+    }
+    M.appendChild(el);
+    return { el, doms, word };
+  });
+  tl.set(M, { visibility: 'visible' }, S(9) - 0.05); cue(S(9) - 0.15, 'whoosh');
+  rowEls.forEach(({ el, doms, word }, r) => {
+    const t0 = W(9, word) - 0.1;
+    tl.fromTo(el, { opacity: 0, x: -60 }, { opacity: 1, x: 0, duration: 0.4, ease: 'power3.out', immediateRender: false }, t0 - 0.2);
+    doms.forEach((dm, i) => {
+      tl.fromTo(dm, { rotation: 0 }, { rotation: 72, duration: 0.32 + i * 0.03, ease: 'power2.in', immediateRender: false }, t0 + 0.25 + i * 0.16);
+      if (i % 3 === 2) cue(t0 + 0.25 + i * 0.16 + 0.3, 'tick');
+    });
+  });
+  tl.to(M, { opacity: 0, duration: 0.3 }, S(10) - 0.35);
+  tl.set(M, { visibility: 'hidden', opacity: 1 }, S(10) - 0.05);
+
+  // the gap
+  const G = document.createElement('div'); G.className = 'layer'; G.id = 'gapscene';
+  G.innerHTML = `<div class="row" style="top:470px;height:340px"><div class="ground" style="bottom:0"></div></div>`;
+  const grow = G.firstChild; let gx = 160; const gd = [];
+  for (let i = 0; i < 10; i++) {
+    if (i === 7) { // the gap
+      const box = document.createElement('div'); box.className = 'gapbox'; box.style.cssText = `left:${gx}px;width:250px;height:310px`;
+      box.innerHTML = '<b>gap</b><em></em>'; grow.appendChild(box); gx += 250 + 20; continue;
+    }
+    const h = 80 * Math.pow(1.14, i), w = h * 0.42;
+    const dm = document.createElement('div'); dm.className = 'dm'; dm.style.cssText = `left:${gx}px;width:${w}px;height:${h}px`;
+    grow.appendChild(dm); gd.push(dm); gx += w + h * 0.6;
+  }
+  document.getElementById('stage').insertBefore(G, document.getElementById('hud'));
+  const box = G.querySelector('.gapbox'), em = box.querySelector('em'), bl = box.querySelector('b');
+  const tG = S(10) - 0.05;
+  tl.set(G, { visibility: 'visible' }, tG); cue(tG - 0.1, 'whoosh');
+  tl.fromTo(G, { opacity: 0, scale: 1.1 }, { opacity: 1, scale: 1, duration: 0.45, ease: 'power3.out', immediateRender: false }, tG);
+  gd.slice(0, 7).forEach((dm, i) => {
+    const last = i === 6;
+    tl.fromTo(dm, { rotation: 0 }, { rotation: last ? 90 : 68, duration: last ? 0.55 : 0.3, ease: last ? 'bounce.out' : 'power2.in', immediateRender: false }, W(10, 'gap') + i * 0.2);
+    if (i % 2 === 0) cue(W(10, 'gap') + i * 0.2 + 0.28, 'tick');
+  });
+  const tStop = W(10, 'gap') + 6 * 0.2 + 0.45;
+  cue(tStop, 'hit');
+  tl.fromTo(box, { boxShadow: '0 0 0px rgba(77,148,255,0) inset' }, { boxShadow: '0 0 90px rgba(77,148,255,.55) inset', duration: 0.4, yoyo: true, repeat: 1, immediateRender: false }, tStop);
+  // slack + examples
+  const tSl = W(11, 'slack');
+  tl.call(() => { bl.textContent = 'gap'; em.textContent = ''; }, null, tG);
+  tl.call(() => { bl.textContent = 'slack'; }, null, tSl);
+  cue(tSl, 'pop');
+  [['money', 'money in the bank'], ['room', 'room in your calendar'], ['pause', 'a pause before you reply']].forEach(([w, txt]) => {
+    const t0 = W(11, w);
+    tl.call(() => { em.textContent = txt; }, null, t0);
+    tl.fromTo(em, { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.3, ease: 'power3.out', immediateRender: false }, t0);
+    cue(t0, 'tick');
+  });
+  tl.to(G, { opacity: 0, duration: 0.3 }, S(12) - 0.45);
+  tl.set(G, { visibility: 'hidden' }, S(12) - 0.15);
+
+  // finale
+  const endl = document.getElementById('endline');
+  cue(S(12) - 0.5, 'whoosh'); flashAt(S(12) - 0.4, 0.5);
+  const tEnd = W(12, 'one');
+  tl.call(() => { endl.innerHTML = 'One fall stays <span class="k">one fall.</span>'; }, null, tEnd - 0.05);
+  tl.fromTo(endl, { opacity: 0, scale: 1.4, filter: 'blur(16px)' }, { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.45, ease: 'power4.out', immediateRender: false }, tEnd);
+  cue(tEnd, 'shimmer');
+  tl.call(() => { head.innerHTML = 'Leave a <span class="b">gap.</span>'; }, null, S(12) - 0.05);
+  tl.fromTo(head, { y: 30, opacity: 0 }, { y: 0, opacity: 1, duration: 0.45, ease: 'power3.out', immediateRender: false }, S(12));
+
+  // the world (canvas): one tween drives the whole clock
+  const clock = { t: 0 };
+  tl.to(clock, { t: D, duration: D, ease: 'none', onUpdate: () => render(clock.t) }, 0);
+  tl.to({}, { duration: 0.01 }, D);
+
+  tl.seek(0); render(0); head.innerHTML = headAt(0);
+  window.__video = {
+    duration: tl.duration(),
+    cues: cues.sort((a, b) => a.t - b.t),
+    seek: (s) => { tl.seek(s, false); render(s); },
+  };
+  return tl.duration();
+};
+</script>
+</body>
+</html>

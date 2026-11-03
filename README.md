@@ -51,6 +51,7 @@ Two skills for [Claude Code](https://claude.com/claude-code) (and for Claude on 
 - 4:5 feed (1080×1350) or 9:16 Reels (`--reels`) with a **blurred background fill** and an optional **title band** (`--header="Small|Big"`).
 - Optional fine-tuning with `data-anim` / `data-delay` / `data-transition`.
 - **Sound design**: an impact on every cut, stutter thuds, UI ticks, keystrokes for typed titles, whooshes, risers and a final shimmer, all synthesised (no rights). They go through a compressor → limiter bus with reverb, and the music or a built-in beat bed ducks under the hits. Each trigger varies in pitch, length and stereo pan, and the same variant never plays twice in a row.
+- **Narrated explainers**: offline English voiceover (Windows voices) with per-word timing, captions synced word by word, and a 16:9 example: "28 dominoes vs the Eiffel Tower".
 - **Higgsfield API** (optional, with your own key): generate the photos and short image-to-video clips with `scripts/higgsfield.mjs`.
 - **Openverse**: search for **CC0 / public domain** sounds and music (no credit required). You can use several files per type, which rotate without repeats.
 - **No ffmpeg**: the video is rendered by Chrome (GSAP + WebCodecs) as H.264 + AAC, with the `moov` atom at the start of the file.

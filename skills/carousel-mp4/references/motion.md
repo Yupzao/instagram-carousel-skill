@@ -3,6 +3,7 @@
 Use it when the user wants something more dynamic than slides: kinetic typography, varied transitions and a continuous piece, in the style of a motion-graphics reel.
 Working examples:
 - `assets/motion-example.html`: a 29.6 s 9:16 reel comparing car tax (ISV) for three BMW 3 Series engines for VD Carros (slams, panels, zoom-through, whip pans, iris).
+- `assets/eiffel-explainer/eiffel.html`: a 66 s 16:9 narrated physics explainer ("28 dominoes vs the Eiffel Tower"). A canvas world in real metres with a camera that follows the falling front from 5 mm to 330 m, a HUD counter (#n · height · energy), vector Paris landmarks, word-by-word captions synced to the voiceover (`timeline.js`), charts (×1.5 size, ×5 energy on a log axis) and a metaphor ending. Rebuild the voice with `scripts/voice/` (see `video.md` › Voiceover).
 - `assets/motion-example-16x9.html`: a 26.8 s 16:9 piece on importing a BMW M3 F80 (kinetic captions over moving photos, text behind the car, text on a path, text on the ground, glitch slices, pixel blocks, an app-style price card). Needs the photos next to it to render; read it for the techniques.
 
 ## How it works
