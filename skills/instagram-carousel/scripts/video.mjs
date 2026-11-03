@@ -3,6 +3,7 @@
 // headless Chrome animates it with GSAP, captures it frame by frame and encodes with WebCodecs.
 // Usage: node video.mjs <carousel.html> [output.mp4] [options]
 //   --reels               1080×1920 (carousel centred); default 1080×1350 (4:5 feed)
+//   --landscape           1920×1080 (16:9); only with a custom choreography (window.__scene)
 //   --fps=30 --bitrate=12 (Mbps)
 //   --sfx=builtin|<folder> effects: 'builtin' (synthesised, default) or a folder with whoosh*.*, pop*.*, hit*.* (mp3/wav/ogg).
 //                         Several per type (whoosh-1.mp3, whoosh-2.wav…) rotate without back-to-back repeats.
@@ -30,8 +31,8 @@ const here = path.dirname(fileURLToPath(import.meta.url));
 const htmlPath = path.resolve(input);
 const outPath = path.resolve(outArg || htmlPath.replace(/\.html?$/i, '') + '.mp4');
 const FPS = Number(flags.fps) || 30;
-const W = 1080;
-const H = flags.reels ? 1920 : 1350;
+const W = flags.landscape ? 1920 : 1080;
+const H = flags.landscape ? 1080 : flags.reels ? 1920 : 1350;
 const BITRATE = (Number(flags.bitrate) || 12) * 1_000_000;
 
 function findChrome() {
@@ -102,7 +103,11 @@ try {
   await page.send('Emulation.setDeviceMetricsOverride', { width: W, height: H, deviceScaleFactor: 1, mobile: false });
   for (let i = 0; i < 100 && (await page.evaluate('document.readyState')) !== 'complete'; i++) await sleep(100);
   log('page loaded');
-  const duration = await page.evaluate(fs.readFileSync(path.join(here, 'video', 'animate.js'), 'utf8'));
+  // Custom choreography (motion graphics): if the page defines window.__scene(), use it instead of the automatic animate.js.
+  const custom = await page.evaluate("typeof window.__scene === 'function'");
+  const duration = custom
+    ? await page.evaluate('window.__scene()')
+    : await page.evaluate(fs.readFileSync(path.join(here, 'video', 'animate.js'), 'utf8'));
   const frames = Math.min(Math.ceil(duration * FPS), Number(flags['max-frames']) || Infinity);
   console.log(`Animation: ${duration.toFixed(1)}s · ${frames} frames · ${W}×${H} @ ${FPS}fps`);
 
@@ -135,6 +140,9 @@ try {
   // Encoder page
   const encoder = await connect(await open(pathToFileURL(path.join(here, 'video', 'encoder.html')).href));
   for (let i = 0; i < 100 && (await encoder.evaluate('typeof Mp4Muxer')) === 'undefined'; i++) await sleep(100);
+  // the carousel tab must be in front before any capture: in the background Chrome stops producing frames and capture hangs
+  await page.send('Page.bringToFront');
+  await page.send('Emulation.setFocusEmulationEnabled', { enabled: true });
   // --stills=1.5,4,8 → only grabs JPEGs at those seconds (to check the animation) and exits
   if (flags.stills) {
     const dir = outPath.replace(/\.mp4$/i, '') + '-stills';

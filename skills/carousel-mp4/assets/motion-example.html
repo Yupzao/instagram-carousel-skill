@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="pt-PT">
+<head>
+<meta charset="utf-8">
+<title>Motion ISV 320</title>
+<!-- Par n.º 8 (Archivo Black + Archivo): tipografia cinética. Marca VD Carros: grafite #141416 · claro #F1F1F3 · pop #EC4B57 -->
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=Archivo:wght@500;600;700;800&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<style>
+  :root { --dark: #141416; --light: #f1f1f3; --pop: #ec4b57; --soft: #b9b9c0; --mid: #4a4a4f;
+          --fd: 'Archivo Black', Impact, sans-serif; --fb: 'Archivo', system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--dark); }
+  body { font-family: var(--fb); -webkit-font-smoothing: antialiased; }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; background: var(--dark); }
+  .scene { position: absolute; inset: 0; visibility: hidden; overflow: hidden; }
+  .dark { background: var(--dark); color: #fff; }
+  .light { background: var(--light); color: var(--dark); }
+  .red { background: var(--pop); color: var(--dark); }
+  .a { position: absolute; }
+  .d { font-family: var(--fd); text-transform: uppercase; line-height: .9; letter-spacing: -.02em; }
+  .w { display: inline-block; }
+  .box { display: inline-block; padding: 6px 30px 14px; border-radius: 22px; }
+  .lead { font: 600 46px/1.25 var(--fb); }
+  .lbl { font: 800 31px/1 var(--fb); letter-spacing: .16em; text-transform: uppercase; }
+  .fine { font: 500 31px/1.4 var(--fb); color: var(--mid); }
+  .outline { color: transparent; -webkit-text-stroke: 4px rgba(255,255,255,.55); }
+  .chip { display: inline-flex; align-items: center; gap: 14px; padding: 16px 30px 16px 22px; border-radius: 999px; font: 800 36px/1 var(--fb); }
+  .chip svg { width: 40px; height: 40px; }
+  .photo { background: center / cover no-repeat; }
+  .panel { position: absolute; left: -300px; width: 1680px; height: 2600px; top: -340px; visibility: hidden; }
+  .card { position: absolute; width: 296px; height: 230px; border-radius: 26px; overflow: hidden; }
+  .row { position: absolute; left: 80px; right: 80px; height: 170px; border-radius: 30px; background: #fff; display: flex; align-items: center; gap: 26px; padding: 0 36px 0 18px; }
+  .row .ph { width: 200px; height: 134px; border-radius: 20px; flex: none; background: center / cover no-repeat; }
+  .row .who { font: 400 66px/1 var(--fd); }
+  .row .fuel { font: 700 31px/1 var(--fb); color: var(--mid); margin-top: 8px; }
+  .row .v { margin-left: auto; font: 400 62px/1 var(--fd); font-variant-numeric: tabular-nums; }
+  .row.win { background: var(--dark); color: #fff; }
+  .row.win .fuel { color: var(--soft); }
+  .row.win .v { color: var(--pop); }
+  .track { position: absolute; left: 80px; width: 920px; height: 40px; border-radius: 999px; background: #2c2c31; overflow: hidden; }
+  .fill { position: absolute; left: 0; top: 0; bottom: 0; width: 0; border-radius: 999px; background: #fff; }
+  .bar { position: absolute; left: 260px; height: 120px; border-radius: 22px; background: #3a3a40; width: 0; }
+  .bar.win { background: var(--pop); }
+  .bl { position: absolute; left: 80px; font: 400 64px/1 var(--fd); }
+  .bv { position: absolute; font: 400 52px/1 var(--fd); font-variant-numeric: tabular-nums; white-space: nowrap; }
+  .sticker { position: absolute; padding: 20px 34px; border-radius: 999px; font: 400 60px/1 var(--fd); }
+  .flash { position: absolute; inset: 0; background: #fff; opacity: 0; pointer-events: none; z-index: 50; }
+  .iris { position: absolute; width: 100px; height: 100px; margin: -50px 0 0 -50px; border-radius: 50%; transform: scale(0); visibility: hidden; z-index: 40; }
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-gas" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 22V5a2 2 0 0 1 2-2h7a2 2 0 0 1 2 2v17"/><path d="M2 22h13"/><path d="M6 8h5"/><path d="M14 10h2a2 2 0 0 1 2 2v5a1.5 1.5 0 0 0 3 0V8l-3-3"/></symbol>
+  <symbol id="i-diesel" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.7S5 10 5 15a7 7 0 0 0 14 0c0-5-7-12.3-7-12.3z"/></symbol>
+  <symbol id="i-plug" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 2v6M15 2v6"/><path d="M6 8h12v4a6 6 0 0 1-12 0z"/><path d="M12 18v4"/></symbol>
+</svg>
+
+<div id="stage">
+
+  <!-- S1 · Gancho: palavras a bater -->
+  <section class="scene dark" id="s1">
+    <div class="a d" id="w1" style="left:80px;top:420px;font-size:230px">Qual</div>
+    <div class="a d" id="w2" style="left:80px;top:640px;font-size:230px">paga</div>
+    <div class="a d" id="w3" style="left:80px;top:860px;font-size:230px">menos</div>
+    <div class="a d" id="w4" style="left:80px;top:1100px;font-size:230px"><span class="box" style="background:var(--pop);color:var(--dark)">ISV?</span></div>
+    <p class="a lbl" id="s1sub" style="left:80px;top:1440px;color:var(--soft)">BMW Série 3 · gasolina · gasóleo · plug-in</p>
+  </section>
+
+  <!-- S2 · Mesmo carro -->
+  <section class="scene light" id="s2">
+    <div class="a d" id="s2t" style="left:80px;top:330px;font-size:150px">Mesmo BMW.</div>
+    <div class="card photo" id="c1" style="left:80px;top:620px;background-image:url('320i.jpg');background-position:50% 55%"></div>
+    <div class="card photo" id="c2" style="left:392px;top:620px;background-image:url('320d.jpg');background-position:50% 62%"></div>
+    <div class="card photo" id="c3" style="left:704px;top:620px;background-image:url('320e.jpg');background-position:50% 50%"></div>
+    <span class="a chip" id="k1" style="left:80px;top:880px;background:#fff"><svg><use href="#i-gas"/></svg>320i</span>
+    <span class="a chip" id="k2" style="left:392px;top:880px;background:#fff"><svg><use href="#i-diesel"/></svg>320d</span>
+    <span class="a chip" id="k3" style="left:704px;top:880px;background:#fff"><svg><use href="#i-plug"/></svg>320e</span>
+    <div class="a d" id="s2m1" style="left:80px;top:1060px;font-size:120px">Só muda</div>
+    <div class="a d" id="s2m2" style="left:80px;top:1180px;font-size:120px">o <span class="box" style="background:var(--dark);color:#fff">motor</span></div>
+    <p class="a lead" id="s2l" style="left:80px;right:80px;top:1400px;color:var(--mid)">Série 3 de 2024, em concessionários BMW na Alemanha. Preço quase igual.</p>
+  </section>
+
+  <!-- Zoom do cartão para a cena seguinte -->
+  <div class="a photo" id="zoomer" style="visibility:hidden;z-index:30;background-image:url('320i.jpg');background-position:50% 55%"></div>
+
+  <!-- S3–S5 · Cada motor -->
+  <section class="scene dark" id="s3">
+    <div class="a photo hero" style="left:0;top:0;width:1080px;height:1000px;background-image:url('320i.jpg');background-position:50% 55%"></div>
+    <div class="a" style="left:0;top:560px;width:1080px;height:450px;background:linear-gradient(to top,var(--dark),rgba(20,20,22,0))"></div>
+    <div class="a d outline big" style="left:60px;top:760px;font-size:330px">320i</div>
+    <span class="a chip fuel" style="left:80px;top:1040px;background:#fff;color:var(--dark)"><svg><use href="#i-gas"/></svg>Gasolina</span>
+    <p class="a lbl" style="left:80px;top:1150px;color:var(--soft)">ISV a pagar</p>
+    <div class="a d num" data-to="3817" style="left:80px;top:1200px;font-size:200px">0 €</div>
+    <div class="track" style="top:1420px"><div class="fill" data-w="76.3"></div></div>
+    <p class="a lead sub" style="left:80px;right:80px;top:1490px;color:var(--soft)">147 g/km de CO2. É a referência.</p>
+  </section>
+
+  <section class="scene dark" id="s4">
+    <div class="a photo hero" style="left:0;top:0;width:1080px;height:1000px;background-image:url('320d.jpg');background-position:50% 62%"></div>
+    <div class="a" style="left:0;top:560px;width:1080px;height:450px;background:linear-gradient(to top,var(--dark),rgba(20,20,22,0))"></div>
+    <div class="a d outline big" style="left:60px;top:760px;font-size:330px">320d</div>
+    <span class="a chip fuel" style="left:80px;top:1040px;background:#fff;color:var(--dark)"><svg><use href="#i-diesel"/></svg>Gasóleo</span>
+    <p class="a lbl" style="left:80px;top:1150px;color:var(--soft)">ISV a pagar</p>
+    <div class="a d num" data-to="4339" style="left:80px;top:1200px;font-size:200px">0 €</div>
+    <div class="track" style="top:1420px"><div class="fill" data-w="86.8"></div></div>
+    <p class="a lead sub" style="left:80px;right:80px;top:1490px;color:var(--soft)">Menos CO2, mas o gasóleo tem taxa mais cara.</p>
+    <span class="sticker" id="st4" style="left:640px;top:1030px;background:var(--pop);color:var(--dark)">+522 €</span>
+  </section>
+
+  <section class="scene dark" id="s5">
+    <div class="a photo hero" style="left:0;top:0;width:1080px;height:1000px;background-image:url('320e.jpg');background-position:50% 50%"></div>
+    <div class="a" style="left:0;top:560px;width:1080px;height:450px;background:linear-gradient(to top,var(--dark),rgba(20,20,22,0))"></div>
+    <div class="a d outline big" style="left:60px;top:760px;font-size:330px">320e</div>
+    <span class="a chip fuel" style="left:80px;top:1040px;background:#fff;color:var(--dark)"><svg><use href="#i-plug"/></svg>Plug-in</span>
+    <p class="a lbl" style="left:80px;top:1150px;color:var(--soft)">ISV a pagar</p>
+    <div class="a d num" data-to="903" style="left:80px;top:1200px;font-size:200px;color:var(--pop)">0 €</div>
+    <div class="track" style="top:1420px"><div class="fill" data-w="18.1" style="background:var(--pop)"></div></div>
+    <p class="a lead sub" style="left:80px;right:80px;top:1490px;color:var(--soft)">59 km elétricos e 33 g/km: paga só 25% do ISV.</p>
+    <span class="sticker" id="st5" style="left:640px;top:1030px;background:#fff;color:var(--dark)">Só 25%</span>
+  </section>
+
+  <!-- Íris: abre a partir do 903 € -->
+  <div class="iris" id="iris1" style="left:330px;top:1300px;background:var(--pop)"></div>
+  <div class="iris" id="iris2" style="left:330px;top:1300px;background:var(--dark)"></div>
+
+  <!-- S6 · 4× menos -->
+  <section class="scene dark" id="s6">
+    <div class="a d" id="four" style="left:80px;top:300px;font-size:480px;color:var(--pop)">4×</div>
+    <div class="a d" id="menos" style="left:80px;top:760px;font-size:130px">menos ISV</div>
+    <span class="bl" style="top:1000px">320d</span><div class="bar" id="b1" style="top:975px" data-w="740"></div><span class="bv" id="v1" style="top:1010px;left:810px;color:#fff">4.339 €</span>
+    <span class="bl" style="top:1160px">320i</span><div class="bar" id="b2" style="top:1135px" data-w="650"></div><span class="bv" id="v2" style="top:1170px;left:720px;color:#fff">3.817 €</span>
+    <span class="bl" style="top:1320px">320e</span><div class="bar win" id="b3" style="top:1295px" data-w="154"></div><span class="bv" id="v3" style="top:1330px;left:440px;color:#fff">903 €</span>
+    <p class="a lead" id="s6l" style="left:80px;right:80px;top:1480px;color:var(--soft)">O plug-in paga menos de um quarto.</p>
+  </section>
+
+  <!-- Painéis de transição -->
+  <div class="panel" id="p1" style="background:var(--pop);z-index:35"></div>
+  <div class="panel" id="p2" style="background:var(--light);z-index:35"></div>
+  <div class="panel" id="p3" style="background:var(--pop);z-index:35"></div>
+
+  <!-- S7 · Preço final -->
+  <section class="scene light" id="s7">
+    <div class="a d" id="s7t" style="left:80px;top:330px;font-size:112px;white-space:nowrap">Preço final</div>
+    <p class="a lead" id="s7l" style="left:80px;right:80px;top:500px;color:var(--mid)">Chave-na-mão, com matrícula portuguesa.</p>
+    <div class="row win" id="r1" style="top:640px"><div class="ph" style="background-image:url('320e.jpg')"></div><div><div class="who">320e</div><div class="fuel">Plug-in</div></div><span class="v num" data-to="34093">0 €</span></div>
+    <div class="row" id="r2" style="top:840px"><div class="ph" style="background-image:url('320i.jpg');background-position:50% 55%"></div><div><div class="who">320i</div><div class="fuel">Gasolina</div></div><span class="v num" data-to="37307">0 €</span></div>
+    <div class="row" id="r3" style="top:1040px"><div class="ph" style="background-image:url('320d.jpg');background-position:50% 62%"></div><div><div class="who">320d</div><div class="fuel">Gasóleo</div></div><span class="v num" data-to="38789">0 €</span></div>
+    <span class="sticker" id="st7" style="left:620px;top:575px;background:var(--pop);color:var(--dark);font-size:46px">−3.214 €</span>
+    <p class="a fine" id="s7f" style="left:80px;right:80px;top:1260px">Carro + ISV + serviço VD Carros de 2.500 €. Garantia opcional, combinada consigo e com custo extra. CO2 do 320i e do 320d: homologação WLTP, a confirmar no certificado de conformidade.</p>
+  </section>
+
+  <!-- S8 · CTA -->
+  <section class="scene red" id="s8">
+    <img class="a" id="logo" src="logo.png" alt="VD Carros" style="left:80px;top:330px;height:64px;filter:brightness(0)">
+    <div class="a d" id="c1w" style="left:80px;top:500px;font-size:200px">E o seu</div>
+    <div class="a d" id="c2w" style="left:80px;top:700px;font-size:200px">carro?</div>
+    <p class="a lead" id="cl" style="left:80px;right:80px;top:960px">Calcule o ISV em 1 minuto, com as tabelas de 2026.</p>
+    <span class="a" id="btn" style="left:80px;top:1130px;display:inline-flex;background:var(--dark);color:#fff;font:800 60px/1 var(--fb);padding:38px 64px;border-radius:999px">Link na bio →</span>
+    <p class="a lead" id="url" style="left:80px;top:1330px;font-size:40px">vdcarros.pt/simulador-isv</p>
+  </section>
+
+  <div class="flash" id="flash"></div>
+</div>
+
+<script>
+window.__scene = async function () {
+  await document.fonts.ready;
+  await Promise.all([...document.images].map((i) => i.decode().catch(() => {})));
+  const $ = (s) => document.querySelector(s);
+  const tl = gsap.timeline({ paused: true });
+  const cues = [];
+  const cue = (t, type) => cues.push({ t, type });
+  const eur = (n) => String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.') + ' €';
+  const show = (el, t) => tl.set(el, { visibility: 'visible' }, t);
+  const hide = (el, t) => tl.set(el, { visibility: 'hidden' }, t);
+  const count = (el, t, d = 1.1) => { const o = { v: 0 }; tl.to(o, { v: +el.dataset.to, duration: d, ease: 'power2.out', onUpdate: () => { el.textContent = eur(o.v); } }, t); };
+  const slam = (el, t, from = 2.6) => { tl.fromTo(el, { scale: from, opacity: 0, filter: 'blur(18px)', transformOrigin: '0% 50%' }, { scale: 1, opacity: 1, filter: 'blur(0px)', duration: 0.38, ease: 'power4.out' }, t); cue(t + 0.05, 'hit'); };
+  const shake = (t) => tl.fromTo('#stage', { x: 0, y: 0 }, { keyframes: [{ x: -14, y: 8 }, { x: 12, y: -6 }, { x: -6, y: 4 }, { x: 0, y: 0 }], duration: 0.28, ease: 'none' }, t);
+  const flash = (t) => tl.fromTo('#flash', { opacity: 0.85 }, { opacity: 0, duration: 0.35, ease: 'power2.out' }, t);
+  const pop = (el, t, rot = -8) => { tl.fromTo(el, { scale: 0, rotate: rot * 3, opacity: 0 }, { scale: 1, rotate: rot, opacity: 1, duration: 0.55, ease: 'back.out(2.4)' }, t); cue(t, 'pop'); };
+  const rise = (el, t, d = 0.6) => tl.fromTo(el, { y: 60, opacity: 0 }, { y: 0, opacity: 1, duration: d, ease: 'power3.out' }, t);
+  const panel = (el, t, dir = 1) => { // painel inclinado que varre o ecrã
+    show(el, t);
+    tl.fromTo(el, { x: dir * 1900, skewX: -18 }, { x: 0, duration: 0.42, ease: 'power3.in' }, t);
+    tl.to(el, { x: -dir * 1900, duration: 0.42, ease: 'power3.out' }, t + 0.46);
+    hide(el, t + 0.9);
+    cue(t + 0.1, 'whoosh');
+  };
+
+  // S1 · palavras a bater (0–2.6)
+  show('#s1', 0);
+  slam('#w1', 0.1); slam('#w2', 0.45); slam('#w3', 0.8);
+  slam('#w4', 1.2, 4); shake(1.25); flash(1.2);
+  rise('#s1sub', 1.6);
+  // painel vermelho → S2
+  panel('#p1', 2.4);
+  hide('#s1', 2.84); show('#s2', 2.84);
+
+  // S2 · mesmo BMW (2.84–6.2)
+  tl.fromTo('#s2t', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.6, ease: 'power4.inOut' }, 3.0); cue(3.0, 'hit');
+  ['#c1', '#c2', '#c3'].forEach((c, i) => tl.fromTo(c, { x: 700, rotate: 12, opacity: 0 }, { x: 0, rotate: 0, opacity: 1, duration: 0.6, ease: 'expo.out' }, 3.35 + i * 0.12));
+  cue(3.35, 'whoosh');
+  ['#k1', '#k2', '#k3'].forEach((k, i) => pop(k, 3.8 + i * 0.1, 0));
+  slam('#s2m1', 4.3, 1.8); slam('#s2m2', 4.55, 1.8);
+  rise('#s2l', 4.9);
+  // zoom: o cartão do 320i cresce até ser a foto da cena seguinte
+  const c1 = $('#c1').getBoundingClientRect();
+  show('#zoomer', 6.0);
+  tl.fromTo('#zoomer', { left: c1.left, top: c1.top, width: c1.width, height: c1.height, borderRadius: 26 },
+    { left: 0, top: 0, width: 1080, height: 1000, borderRadius: 0, duration: 0.6, ease: 'expo.inOut' }, 6.0);
+  cue(6.0, 'whoosh');
+  tl.to('#s2 > :not(#c1)', { opacity: 0, duration: 0.25 }, 6.0);
+  tl.set('#s2', { backgroundColor: '#141416' }, 6.3);
+  hide('#s2', 6.6); show('#s3', 6.6); hide('#zoomer', 6.62);
+
+  // Cena de cada motor
+  const car = (id, t, extra) => {
+    const s = $(id);
+    tl.fromTo(s.querySelector('.hero'), { scale: 1.08 }, { scale: 1, duration: 3.2, ease: 'none' }, t);
+    tl.fromTo(s.querySelector('.big'), { x: -500, opacity: 0 }, { x: 0, opacity: 1, duration: 0.7, ease: 'expo.out' }, t + 0.05);
+    pop(s.querySelector('.fuel'), t + 0.25, 0);
+    rise(s.querySelector('.lbl'), t + 0.35, 0.4);
+    tl.fromTo(s.querySelector('.num'), { scale: 0.6, opacity: 0, transformOrigin: '0% 50%' }, { scale: 1, opacity: 1, duration: 0.4, ease: 'back.out(2)' }, t + 0.4);
+    count(s.querySelector('.num'), t + 0.4, 1.1); cue(t + 0.4, 'hit');
+    const f = s.querySelector('.fill');
+    tl.fromTo(f, { width: '0%' }, { width: f.dataset.w + '%', duration: 1.1, ease: 'power2.out' }, t + 0.4);
+    rise(s.querySelector('.sub'), t + 0.9);
+    if (extra) extra(t);
+  };
+  // whip pan entre cenas (com desfoque de movimento)
+  const whip = (a, b, t) => {
+    show(b, t);
+    tl.fromTo(a, { x: 0, filter: 'blur(0px)' }, { x: -1080, filter: 'blur(24px)', duration: 0.45, ease: 'power4.in' }, t);
+    tl.fromTo(b, { x: 1080, filter: 'blur(24px)' }, { x: 0, filter: 'blur(0px)', duration: 0.45, ease: 'power4.out' }, t + 0.42);
+    hide(a, t + 0.45);
+    cue(t + 0.05, 'whoosh');
+  };
+
+  car('#s3', 6.6);
+  whip('#s3', '#s4', 9.6);
+  car('#s4', 10.05, (t) => { pop('#st4', t + 1.6, -8); shake(t + 1.62); });
+  whip('#s4', '#s5', 13.1);
+  car('#s5', 13.55, (t) => { pop('#st5', t + 1.6, 8); flash(t + 1.6); });
+
+  // íris a partir do 903 € → S6
+  show('#iris1', 16.6); show('#iris2', 16.6);
+  tl.to('#iris1', { scale: 46, duration: 0.55, ease: 'power3.in' }, 16.6);
+  tl.to('#iris2', { scale: 46, duration: 0.55, ease: 'power3.in' }, 16.78);
+  cue(16.6, 'whoosh');
+  hide('#s5', 17.35); show('#s6', 17.35); hide('#iris1', 17.35); hide('#iris2', 17.35);
+
+  // S6 · 4× menos (17.35–20.6)
+  tl.fromTo('#four', { scale: 5, opacity: 0, rotate: -12, transformOrigin: '20% 50%' }, { scale: 1, opacity: 1, rotate: 0, duration: 0.5, ease: 'expo.out' }, 17.4);
+  cue(17.45, 'hit'); shake(17.55);
+  tl.fromTo('#menos', { clipPath: 'inset(0 100% 0 0)' }, { clipPath: 'inset(0 0% 0 0)', duration: 0.5, ease: 'power4.inOut' }, 17.8);
+  ['#b1', '#b2', '#b3'].forEach((b, i) => tl.fromTo(b, { width: 0 }, { width: +$(b).dataset.w, duration: 0.8, ease: 'expo.out' }, 18.15 + i * 0.15));
+  ['#v1', '#v2', '#v3'].forEach((v, i) => rise(v, 18.5 + i * 0.15, 0.4));
+  cue(18.15, 'pop');
+  rise('#s6l', 18.9);
+  // painel claro → S7
+  panel('#p2', 20.4, -1);
+  hide('#s6', 20.84); show('#s7', 20.84);
+
+  // S7 · preço final (20.84–24.6)
+  slam('#s7t', 21.0, 1.8);
+  rise('#s7l', 21.3);
+  ['#r1', '#r2', '#r3'].forEach((r, i) => tl.fromTo(r, { x: 1100 }, { x: 0, duration: 0.6, ease: 'expo.out' }, 21.5 + i * 0.13));
+  cue(21.5, 'whoosh');
+  document.querySelectorAll('#s7 .num').forEach((n, i) => count(n, 21.8 + i * 0.13, 1.2));
+  pop('#st7', 23.0, -6);
+  tl.fromTo('#s7f', { opacity: 0 }, { opacity: 1, duration: 0.5 }, 23.2);
+  // painel vermelho → S8
+  panel('#p3', 25.2);
+  hide('#s7', 25.64); show('#s8', 25.64);
+
+  // S8 · CTA (25.64–29.5)
+  rise('#logo', 25.8, 0.5);
+  slam('#c1w', 25.9, 2); slam('#c2w', 26.2, 2);
+  rise('#cl', 26.6);
+  pop('#btn', 27.0, 0);
+  tl.to('#btn', { scale: 1.06, duration: 0.45, ease: 'sine.inOut', yoyo: true, repeat: 3 }, 27.7);
+  rise('#url', 27.3);
+  tl.to({}, { duration: 0.01 }, 29.6);
+
+  tl.seek(0);
+  window.__video = { duration: tl.duration(), cues: cues.sort((a, b) => a.t - b.t), seek: (s) => { tl.seek(s, false); } };
+  return tl.duration();
+};
+</script>
+</body>
+</html>
