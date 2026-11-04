@@ -140,6 +140,7 @@ For explainer videos with a narrator (e.g. the "28 dominoes vs the Eiffel Tower"
 **Neural voices (recommended): edge-tts.** Microsoft's neural voices (e.g. `en-US-BrianNeural`, `en-US-AndrewNeural`, `en-US-AriaNeural`, `en-GB-RyanNeural`; list with `python -m edge_tts --list-voices`) with word timing, no key:
 - Needs `pip install edge-tts` (ask the user before installing).
 - `python <ic>/scripts/voice/edge_voice.py <output> --voice=en-US-BrianNeural --rate=+8% --lead=0.35` → `voice.mp3` + `timeline.js` (the whole script in one call, so the delivery flows between sentences).
+- **Animated, personal read** (when a single call sounds flat): make each line of `script.json` an object, `{ "text": "Seriously! Just twenty-eight dominoes.", "rate": "+18%", "pitch": "+8Hz", "gap": 0.12 }`. Each line is synthesised on its own and joined with trimmed silences and a short breath (`gap`). Shape the energy like a person talking: hook fast and slightly high, the "wow" line fastest and highest, numbers punchy, the lesson slower and lower, the last line slowest. Write it the way people speak: "Okay, so…", "Seriously!", a question before the reveal ("Number twenty-eight?"), "you"/"your", and ellipses for pauses. Example: `carousel-mp4/assets/eiffel-explainer/script-personal.json` + `eiffel-personal.html`.
 - Render with `--voice=<output>/voice.mp3 --voice-at=0.35` (the same lead).
 - It uses the Edge read-aloud service unofficially: fine for drafts and personal use; for commercial work the same voices are on the official Azure Speech API (user's key).
 

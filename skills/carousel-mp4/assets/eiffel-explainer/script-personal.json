@@ -1,0 +1,44 @@
+[
+  {
+    "text": "Okay, so... one flick could knock down the Eiffel Tower.",
+    "rate": "+14%",
+    "pitch": "+3Hz",
+    "gap": 0.12
+  },
+  {
+    "text": "Seriously! Just twenty-eight dominoes.",
+    "rate": "+18%",
+    "pitch": "+8Hz",
+    "gap": 0.12
+  },
+  {
+    "text": "Each one topples the next... one and a half times bigger.",
+    "rate": "+14%",
+    "pitch": "+0Hz",
+    "gap": 0.18
+  },
+  {
+    "text": "Five millimetres. Sixty-five centimetres. Fifty-six metres!",
+    "rate": "+18%",
+    "pitch": "+6Hz",
+    "gap": 0.18
+  },
+  {
+    "text": "Number twenty-eight? Two hundred and eighty-four metres tall.",
+    "rate": "+10%",
+    "pitch": "+4Hz",
+    "gap": 0.25
+  },
+  {
+    "text": "Small things, passed along... don't stay small.",
+    "rate": "+4%",
+    "pitch": "-2Hz",
+    "gap": 0.3
+  },
+  {
+    "text": "So... leave a gap.",
+    "rate": "-8%",
+    "pitch": "-4Hz",
+    "gap": 0
+  }
+]
