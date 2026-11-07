@@ -1,0 +1,44 @@
+[
+  {
+    "text": "Three hours drawing something nobody will see.",
+    "rate": "+0%",
+    "pitch": "+0Hz",
+    "gap": 0.55
+  },
+  {
+    "text": "A whole Sunday on a puzzle.",
+    "rate": "-2%",
+    "pitch": "+1Hz",
+    "gap": 0.65
+  },
+  {
+    "text": "People call that a waste of time.",
+    "rate": "+0%",
+    "pitch": "-1Hz",
+    "gap": 0.75
+  },
+  {
+    "text": "But if you loved every minute of it...",
+    "rate": "+2%",
+    "pitch": "+2Hz",
+    "gap": 0.15
+  },
+  {
+    "text": "you didn't lose that time.",
+    "rate": "+0%",
+    "pitch": "+0Hz",
+    "gap": 0.45
+  },
+  {
+    "text": "You lived it.",
+    "rate": "-8%",
+    "pitch": "-1Hz",
+    "gap": 0.95
+  },
+  {
+    "text": "Nothing is a waste of time if you enjoy it.",
+    "rate": "-4%",
+    "pitch": "+0Hz",
+    "gap": 0
+  }
+]
