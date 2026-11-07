@@ -1,0 +1,347 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Games are not wasted</title>
+<!-- 9:16 motion graphics, ~20 s, soft Ava voiceover (timeline.js from edge_voice.py, en-US-AvaNeural).
+     Palette Galactic Candy: marshmallow #F8F5EF + galactic violet #3B1F6E + pop bubblegum pink #FF7EB6.
+     Pink never carries text (contrast on white is too low): it fills the time arc, the puzzle and a highlighter behind key words.
+     Type contrast: Playfair Display italic carries the voice, Unbounded uppercase slams the key words, Plus Jakarta Sans for micro-type.
+     Story on one 24-hour dial: 3 h beating one boss → a whole Sunday playing with friends → stamped WASTED → every minute lights up → stamp peels off → lived. -->
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@800&family=Playfair+Display:ital,wght@1,400;1,500&family=Plus+Jakarta+Sans:wght@700&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="timeline.js"></script>
+<style>
+  :root { --wht: #f8f5ef; --vio: #3b1f6e; --pink: #ff7eb6; --fk: 'Unbounded', sans-serif; --fi: 'Playfair Display', Georgia, serif; --fm: 'Plus Jakarta Sans', system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--wht); }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; color: var(--vio);
+           background: radial-gradient(110% 70% at 50% 56%, #fffaf3 0%, var(--wht) 55%, #ece5f1 100%); }
+  #drift, #cam { position: absolute; inset: 0; }
+  #grain { position: absolute; inset: 0; opacity: .07; mix-blend-mode: multiply; pointer-events: none; z-index: 40; }
+  .hud { position: absolute; top: 214px; font: 700 31px/1 var(--fm); letter-spacing: .16em; text-transform: uppercase; color: rgba(59,31,110,.62); z-index: 20; }
+  #hudL { left: 80px; } #hudR { right: 80px; font-variant-numeric: tabular-nums; }
+  #hudR b { color: var(--vio); }
+
+  /* kinetic lines: two voices */
+  .line { position: absolute; left: 80px; right: 80px; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: calc(var(--cs) * .3); visibility: hidden; transform-origin: 0 50%; }
+  .line.center { justify-content: center; transform-origin: 50% 50%; }
+  .line .c { display: inline-block; font: italic 400 var(--cs)/1.12 var(--fi); color: var(--vio); }
+  .line .k { display: inline-block; position: relative; isolation: isolate; font: 800 var(--ks)/1.02 var(--fk); text-transform: uppercase; letter-spacing: -.01em; color: var(--vio); transform-origin: 50% 85%; }
+  .line .k .ch { display: inline-block; transform-origin: 50% 90%; }
+  .line .br { flex-basis: 100%; height: 0; }
+  .hl { position: absolute; left: -.1em; right: -.1em; top: .42em; bottom: .02em; border-radius: .08em; background: var(--pink); z-index: -1; transform-origin: 0 50%; }
+  .hl.w { background: var(--wht); }
+
+  /* the dial */
+  #dial { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; overflow: visible; }
+  #ticks line { stroke: rgba(59,31,110,.28); stroke-width: 5; stroke-linecap: round; }
+  #ticks line.maj { stroke: rgba(59,31,110,.55); stroke-width: 7; }
+  .draw { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .chip { position: absolute; padding: 16px 26px; border-radius: 999px; background: var(--vio); color: var(--wht); font: 700 31px/1 var(--fm); letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; opacity: 0; }
+  #stamp { position: absolute; left: 540px; top: 1130px; padding: 14px 36px 20px; border: 12px solid var(--vio); border-radius: 22px; background: rgba(248,245,239,.92);
+           font: 800 118px/1 var(--fk); color: var(--vio); letter-spacing: .02em; white-space: nowrap; opacity: 0; transform: translate(-50%, -50%); }
+  .conf { position: absolute; left: 540px; top: 1130px; width: 22px; height: 12px; margin: -6px 0 0 -11px; border-radius: 6px; opacity: 0; }
+  #iris { position: absolute; left: 540px; top: 1130px; width: 200px; height: 200px; margin: -100px 0 0 -100px; border-radius: 50%; background: var(--pink); transform: scale(0); z-index: 30; }
+  #end { position: absolute; inset: 0; background: var(--pink); visibility: hidden; z-index: 35; }
+  #flash { position: absolute; inset: 0; background: #fff; opacity: 0; z-index: 45; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="drift"><div id="cam">
+    <svg id="dial" viewBox="0 0 1080 1920">
+      <g id="ticks"></g>
+      <circle cx="540" cy="1130" r="320" fill="none" stroke="rgba(59,31,110,.08)" stroke-width="62"/>
+      <circle id="arcGlow" cx="540" cy="1130" r="320" fill="none" stroke="#ff7eb6" stroke-width="96" pathLength="360"
+              stroke-dasharray="360 360" stroke-dashoffset="360" transform="rotate(-90 540 1130)" style="filter: blur(22px); opacity: 0"/>
+      <circle id="arc" cx="540" cy="1130" r="320" fill="none" stroke="#ff7eb6" stroke-width="62" pathLength="360" stroke-linecap="round"
+              stroke-dasharray="360 360" stroke-dashoffset="360" transform="rotate(-90 540 1130)"/>
+      <g id="boss" transform="translate(540 1130)">
+        <g id="sprite"></g>
+        <rect class="hpf" x="-160" y="78" width="320" height="36" rx="18" fill="none" stroke="#3b1f6e" stroke-width="5"/>
+        <rect id="hp" x="-154" y="84" width="308" height="24" rx="12" fill="#ff7eb6"/>
+      </g>
+      <g id="game" transform="translate(540 1130)">
+        <g id="pad">
+          <path fill="#3b1f6e" d="M-88,-18 H88 C120,-18 136,6 142,38 L154,94 C160,124 134,142 112,126 L80,94 H-80 L-112,126 C-134,142 -160,124 -154,94 L-142,38 C-136,6 -120,-18 -88,-18 Z"/>
+          <g id="dpad" fill="#f8f5ef"><rect x="-108" y="20" width="16" height="48" rx="4"/><rect x="-124" y="36" width="48" height="16" rx="4"/></g>
+          <g id="btns"><circle cx="96" cy="26" r="11" fill="#ff7eb6"/><circle cx="118" cy="46" r="11" fill="#f8f5ef"/><circle cx="74" cy="46" r="11" fill="#f8f5ef"/><circle cx="96" cy="66" r="11" fill="#ff7eb6"/></g>
+          <g id="sticks" fill="#6b4fa0"><circle cx="-40" cy="74" r="18"/><circle cx="40" cy="74" r="18"/></g>
+        </g>
+        <g id="players"></g>
+      </g>
+      <g id="gg" transform="translate(540 1130)" opacity="0">
+        <text text-anchor="middle" y="40" fill="#3b1f6e" font-family="Unbounded" font-weight="800" font-size="190">GG</text>
+        <text text-anchor="middle" y="110" fill="#3b1f6e" font-family="Plus Jakarta Sans" font-weight="700" font-size="31" letter-spacing="5">BOSS DEFEATED</text>
+      </g>
+    </svg>
+    <div class="chip" id="chipA" style="left: 640px; top: 726px">3 h · boss fight</div>
+    <div class="chip" id="chipB" style="left: 80px; top: 1556px">Sunday · with friends</div>
+    <div id="stamp">WASTED</div>
+    <div id="confetti"></div>
+    <div id="lines"></div>
+    <div id="iris"></div>
+  </div></div>
+  <div class="hud" id="hudL">Time log</div>
+  <div class="hud" id="hudR">Played <b>00 h</b></div>
+  <div id="end"></div>
+  <canvas id="grain" width="1080" height="1920"></canvas>
+  <div id="flash"></div>
+</div>
+<script>
+const TL = window.TIMELINE;
+const S = (i) => TL.lines[i].start;
+const W = (i, word, nth = 0) => (TL.lines[i].words.filter((w) => w.w.toLowerCase() === word)[nth] || { t: S(i) }).t;
+let seed = 21; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+const C = { x: 540, y: 1130 };
+const NS = 'http://www.w3.org/2000/svg';
+const svgEl = (tag, attrs, parent) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); parent.appendChild(e); return e; };
+
+// punctuation from the script (word boundaries come without it)
+TL.lines.forEach((ln) => {
+  let pos = 0; const low = ln.text.toLowerCase();
+  ln.words.forEach((w) => {
+    const i = low.indexOf(w.w.toLowerCase(), pos); w.p = '';
+    if (i < 0) return;
+    const end = i + w.w.length, m = ln.text.slice(end).match(/^[.?!,]+/);
+    if (m) w.p = m[0].replace('...', '…');
+    pos = end;
+  });
+});
+
+// per line: key words (L = letter by letter, P = pink highlighter, H = white highlighter), layout, line breaks, sound per key
+const LINES = [
+  { keys: { hours: 'P', boss: '' }, top: 330, cs: 72, ks: 92, snd: {} },
+  { keys: { sunday: 'P', friends: '' }, top: 330, cs: 72, ks: 92, br: ['playing'], snd: { sunday: 'hit' } },
+  { keys: { waste: '', time: '' }, top: 330, cs: 72, ks: 92, br: ['that'], snd: {} },
+  { keys: { loved: 'P', minute: '' }, top: 330, cs: 72, ks: 92, br: ['loved'], snd: { loved: 'hit' } },
+  { keys: { lose: '' }, top: 330, cs: 72, ks: 92, snd: { lose: 'hit' } },
+  { keys: { lived: 'LP' }, top: 330, cs: 84, ks: 150, snd: {} },
+  { keys: { nothing: 'L', enjoy: 'H' }, top: 640, cs: 96, ks: 150, br: ['nothing', 'time', 'you'], center: true, parent: 'end', snd: { nothing: 'impact', enjoy: 'pop' } },
+];
+
+const built = LINES.map((cfg, li) => {
+  const el = document.createElement('div');
+  el.className = 'line' + (cfg.center ? ' center' : ''); el.style.cssText = `top:${cfg.top}px;--cs:${cfg.cs}px;--ks:${cfg.ks}px`;
+  const items = TL.lines[li].words.map((w) => {
+    const key = w.w.toLowerCase().replace(/[^a-z']/g, ''), mode = cfg.keys[key];
+    const span = document.createElement('span'), txt = (w.w + w.p).replace(/'/g, '’');
+    if (mode === undefined) { span.className = 'c'; span.textContent = txt; }
+    else {
+      span.className = 'k';
+      span.innerHTML = mode.includes('L') ? [...txt].map((c) => `<span class="ch">${c}</span>`).join('') : txt;
+      if (mode.includes('P') || mode.includes('H')) span.insertAdjacentHTML('afterbegin', `<i class="hl${mode.includes('H') ? ' w' : ''}"></i>`);
+    }
+    el.appendChild(span);
+    if ((cfg.br || []).includes(key)) { const b = document.createElement('i'); b.className = 'br'; el.appendChild(b); }
+    return { w, key, mode, span };
+  });
+  document.getElementById(cfg.parent || 'lines').appendChild(el);
+  return { el, items };
+});
+
+// dial ticks: 60 minutes, every 5th longer
+const ticks = document.getElementById('ticks'), minuteTicks = [];
+for (let i = 0; i < 60; i++) {
+  const a = (i / 60) * Math.PI * 2, maj = i % 5 === 0, r1 = maj ? 366 : 374, r2 = maj ? 404 : 394;
+  minuteTicks.push(svgEl('line', { x1: C.x + Math.sin(a) * r1, y1: C.y - Math.cos(a) * r1, x2: C.x + Math.sin(a) * r2, y2: C.y - Math.cos(a) * r2, class: maj ? 'maj' : '' }, ticks));
+}
+// an original pixel boss: horned slime with pink eyes (11×9 cells of 20px)
+const SPRITE = ['.X.......X.', '.XX.....XX.', '..XXXXXXX..', '.XXXXXXXXX.', 'XXXEXXXEXXX', 'XXXXXXXXXXX', 'XX.X.X.X.XX', 'XXXXXXXXXXX', 'X.XX.X.XX.X'];
+const sprite = document.getElementById('sprite'), cells = [];
+SPRITE.forEach((row, r) => [...row].forEach((ch, c) => {
+  if (ch === '.') return;
+  cells.push(svgEl('rect', { x: -143 + c * 26, y: -176 + r * 26, width: 23, height: 23, rx: 4, fill: ch === 'E' ? '#ff7eb6' : '#3b1f6e' }, sprite));
+}));
+// four players above the controller
+const playersG = document.getElementById('players'), players = [];
+[-165, -55, 55, 165].forEach((x, i) => {
+  const g = svgEl('g', { transform: `translate(${x} -150)` }, playersG);
+  svgEl('circle', { r: 40, fill: i % 2 ? '#3b1f6e' : '#ff7eb6' }, g);
+  const t = svgEl('text', { 'text-anchor': 'middle', y: 11, fill: i % 2 ? '#f8f5ef' : '#3b1f6e', 'font-family': 'Plus Jakarta Sans', 'font-weight': 700, 'font-size': 31 }, g);
+  t.textContent = 'P' + (i + 1);
+  players.push(g);
+});
+// confetti
+const confetti = document.getElementById('confetti'), conf = [];
+for (let i = 0; i < 30; i++) {
+  const d = document.createElement('i'); d.className = 'conf';
+  d.style.background = i % 3 ? '#ff7eb6' : '#3b1f6e'; if (i % 4 === 0) { d.style.width = '16px'; d.style.height = '16px'; d.style.borderRadius = '50%'; }
+  confetti.appendChild(d); conf.push(d);
+}
+
+// film grain
+const gcv = document.getElementById('grain'), gg = gcv.getContext('2d');
+const noise = document.createElement('canvas'); noise.width = noise.height = 256;
+{ const nx = noise.getContext('2d'), id = nx.createImageData(256, 256);
+  for (let i = 0; i < id.data.length; i += 4) { const v = rnd() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+  nx.putImageData(id, 0, 0); }
+let grainK = -1;
+const grain = (t) => {
+  const k = Math.floor(t * 12); if (k === grainK) return; grainK = k;
+  const ox = (k * 97) % 256, oy = (k * 57) % 256;
+  for (let y = -oy; y < 1920; y += 256) for (let x = -ox; x < 1080; x += 256) gg.drawImage(noise, x, y);
+};
+
+// time counter (top right): spent → wasted → lived
+const hudR = document.getElementById('hudR');
+const sm = (u) => { u = Math.max(0, Math.min(1, u)); return u * u * (3 - 2 * u); };
+let HOURS = () => 0, LABEL = () => 'Played', hudKey = '';
+const counter = (t) => {
+  const html = `${LABEL(t)} <b>${String(Math.round(HOURS(t))).padStart(2, '0')} h</b>`;
+  if (html !== hudKey) { hudR.innerHTML = html; hudKey = html; }
+};
+const render = (t) => { grain(t); counter(t); };
+
+window.__scene = async () => {
+  await document.fonts.ready;
+  const tl = gsap.timeline({ paused: true });
+  const cues = [];
+  const cue = (t, type, extra = {}) => cues.push({ t: Math.max(0, t), type, ...extra });
+  const D = TL.lines[TL.lines.length - 1].end + 1.5;
+  const cam = document.getElementById('cam');
+  const flash = (t, a = 0.5) => tl.fromTo('#flash', { opacity: a }, { opacity: 0, duration: 0.3, ease: 'power2.out', immediateRender: false }, t);
+  const shake = (t, amp = 14) => tl.to(cam, { keyframes: [{ x: amp, y: -amp * 0.6 }, { x: -amp * 0.8, y: amp * 0.5 }, { x: amp * 0.4, y: -amp * 0.3 }, { x: 0, y: 0 }], duration: 0.26 }, t);
+  const punch = (t, s = 1.05) => tl.fromTo(cam, { scale: s }, { scale: 1, duration: 0.45, ease: 'expo.out', immediateRender: false }, t);
+  gsap.set(cam, { transformOrigin: `${C.x}px ${C.y}px` });
+
+  // the camera never stops
+  tl.fromTo('#drift', { scale: 1, y: 0 }, { scale: 1.04, y: -14, duration: D, ease: 'none' }, 0);
+
+  // kinetic lines: connectors glide (slow, long settle), key words slam (fast), highlighters swipe in after the slam
+  built.forEach(({ el, items }, li) => {
+    const cfg = LINES[li], t0 = items[0].w.t - 0.08;
+    const out = li < LINES.length - 2 ? S(li + 1) - 0.16 : li === LINES.length - 2 ? S(li + 1) - 0.5 : null;
+    gsap.set(items.map((it) => it.span), { opacity: 0 });
+    gsap.set(el.querySelectorAll('.hl'), { scaleX: 0 });
+    tl.set(el, { visibility: 'visible' }, t0);
+    items.forEach(({ w, key, mode, span }) => {
+      let land = w.t + 0.2;
+      if (mode === undefined) {
+        tl.fromTo(span, { opacity: 0, y: 30, rotate: -2, filter: 'blur(6px)' },
+          { opacity: 1, y: 0, rotate: 0, filter: 'blur(0px)', duration: 0.55, ease: 'expo.out', immediateRender: false }, w.t - 0.04);
+      } else if (mode.includes('L')) {
+        tl.set(span, { opacity: 1 }, w.t);
+        const chs = span.querySelectorAll('.ch');
+        chs.forEach((c, j) => {
+          tl.fromTo(c, { opacity: 0, y: 170, scale: 0.2, rotate: (rnd() - 0.5) * 60 },
+            { opacity: 1, y: 0, scale: 1, rotate: (rnd() - 0.5) * 8, duration: 0.5, ease: 'back.out(2.2)', immediateRender: false }, w.t + j * 0.045);
+        });
+        land = w.t + chs.length * 0.045 + 0.2;
+      } else {
+        tl.fromTo(span, { opacity: 0, scale: 2.3, filter: 'blur(14px)' },
+          { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.28, ease: 'power4.out', immediateRender: false }, w.t);
+      }
+      const hl = span.querySelector('.hl');
+      if (hl) tl.to(hl, { scaleX: 1, duration: 0.32, ease: 'power3.out' }, land);
+      if (cfg.snd && cfg.snd[key]) cue(w.t, cfg.snd[key]);
+    });
+    if (out) tl.to(el, { scale: 1.12, opacity: 0, filter: 'blur(18px)', duration: 0.26, ease: 'power2.in' }, out - 0.26);
+  });
+
+  // the dial is there from frame 0 (ticks + empty track), drifting in
+  tl.fromTo(minuteTicks, { opacity: 0, scale: 0.6, svgOrigin: `${C.x} ${C.y}` },
+    { opacity: 1, scale: 1, duration: 0.6, ease: 'expo.out', stagger: { each: 0.006, from: 'start' } }, 0);
+
+  // 1 · three hours on one boss: the arc fills 3/24 while the boss takes three hits and bursts into pixels
+  const arc = document.getElementById('arc'), glow = document.getElementById('arcGlow');
+  const tA = W(0, 'hours'), tA1 = W(0, 'boss') + 0.45;
+  gsap.set(arc, { opacity: 0 }); tl.set(arc, { opacity: 1 }, tA);
+  tl.to([arc, glow], { attr: { 'stroke-dashoffset': 315 }, duration: tA1 - tA, ease: 'power2.inOut' }, tA);
+  tl.fromTo('#boss', { opacity: 0, scale: 0.6, svgOrigin: `${C.x} ${C.y}` }, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(2)', immediateRender: false }, 0.15);
+  const hits = [[W(0, 'trying'), 205], [W(0, 'beat'), 103], [W(0, 'boss'), 0]];
+  hits.forEach(([t, hp], i) => {
+    tl.to('#sprite', { keyframes: [{ x: 12, duration: 0.05 }, { x: -9, duration: 0.05 }, { x: 5, duration: 0.05 }, { x: 0, duration: 0.05 }] }, t);
+    tl.fromTo('#sprite', { opacity: 0.35 }, { opacity: 1, duration: 0.18, immediateRender: false }, t);
+    tl.to('#hp', { attr: { width: Math.max(hp, 0.01) }, duration: 0.25, ease: 'power3.out' }, t + 0.03);
+    cue(t, i < 2 ? 'hit' : 'impact');
+  });
+  const tBoss = W(0, 'boss');
+  cells.forEach((c) => {
+    const a = rnd() * Math.PI * 2, r = 140 + rnd() * 200;
+    tl.to(c, { x: Math.cos(a) * r, y: Math.sin(a) * r, rotation: (rnd() - 0.5) * 360, opacity: 0, duration: 0.8, ease: 'expo.out', transformOrigin: '50% 50%' }, tBoss + 0.12);
+  });
+  tl.to(['#boss .hpf', '#hp'], { opacity: 0, duration: 0.3 }, tBoss + 0.3);
+  shake(tBoss + 0.12, 12); punch(tBoss + 0.12, 1.04); cue(tBoss + 0.14, 'pop');
+  tl.fromTo('#gg', { opacity: 0, scale: 0.4, svgOrigin: `${C.x} ${C.y}` }, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.6)', immediateRender: false }, tBoss + 0.3);
+  tl.to('#gg', { opacity: 0, scale: 0.8, duration: 0.2, ease: 'power2.in', svgOrigin: `${C.x} ${C.y}` }, S(1) - 0.2);
+  cue(tBoss + 0.3, 'hit');
+  tl.fromTo('#chipA', { opacity: 0, scale: 0.4, rotate: -8 }, { opacity: 1, scale: 1, rotate: -3, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false }, tA1 - 0.05);
+  cue(tA1 - 0.05, 'pop');
+
+  // 2 · a whole Sunday with friends: the arc races round the full day, a controller pops in, buttons light, four players join
+  const tB = W(1, 'sunday'), tB1 = W(1, 'friends') + 0.4;
+  tl.set('#boss', { opacity: 0 }, S(1) - 0.1);
+  tl.to([arc, glow], { attr: { 'stroke-dashoffset': 0 }, duration: tB1 - tB, ease: 'power2.inOut' }, tB);
+  cue(tB - 0.1, 'whoosh');
+  gsap.set(['#pad', ...players], { opacity: 0 });
+  tl.fromTo('#pad', { opacity: 0, scale: 0.3, rotation: -12, svgOrigin: '0 50' }, // origin in #game's own (centred) coordinates
+    { opacity: 1, scale: 1.3, rotation: 0, duration: 0.55, ease: 'back.out(2)', immediateRender: false }, tB);
+  tl.fromTo('#btns circle, #dpad rect, #sticks circle', { scale: 0, transformOrigin: '50% 50%' },
+    { scale: 1, duration: 0.3, ease: 'back.out(3)', stagger: 0.05, immediateRender: false }, W(1, 'playing'));
+  cue(W(1, 'playing'), 'tick'); cue(W(1, 'playing') + 0.2, 'tick');
+  players.forEach((g, i) => {
+    tl.fromTo(g, { opacity: 0, scale: 0, transformOrigin: '50% 50%' }, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(3)', immediateRender: false }, W(1, 'friends') - 0.05 + i * 0.09);
+    if (i % 2 === 0) cue(W(1, 'friends') - 0.05 + i * 0.09, 'pop');
+  });
+  tl.fromTo('#chipB', { opacity: 0, scale: 0.4, rotate: 8 }, { opacity: 1, scale: 1, rotate: 3, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false }, tB1);
+  cue(tB1, 'pop');
+  HOURS = (t) => (t < tA ? 0 : t < tA1 ? 3 * sm((t - tA) / (tA1 - tA)) : t < tB ? 3 : 3 + 24 * sm((t - tB) / (tB1 - tB)));
+
+  // 3 · "a waste of time": the WASTED stamp slams, everything drains to grey-violet
+  const tW = W(2, 'waste');
+  tl.fromTo('#stamp', { opacity: 0, scale: 2.6, rotate: -4, xPercent: -50, yPercent: -50 },
+    { opacity: 1, scale: 1, rotate: -12, duration: 0.28, ease: 'power4.out', immediateRender: false }, tW);
+  cue(tW, 'impact'); shake(tW + 0.02, 18); punch(tW, 1.05);
+  tl.to(arc, { attr: { stroke: '#8f84a8' }, duration: 0.3 }, tW + 0.05);
+  tl.to(['#game', '.chip'], { filter: 'grayscale(1)', opacity: 0.4, duration: 0.3 }, tW + 0.05);
+
+  // 4 · "every minute": the 60 minute ticks light up pink, clockwise
+  const tE = W(3, 'every');
+  tl.to(minuteTicks, { stroke: '#ff7eb6', strokeWidth: 9, duration: 0.12, stagger: 0.016 }, tE - 0.05);
+  for (let i = 0; i < 60; i += 10) cue(tE - 0.05 + i * 0.016, 'tick');
+
+  // 5 · "you didn't lose that time": the stamp lifts (anticipation) and peels away
+  const tLose = W(4, 'lose');
+  tl.to('#stamp', { y: -30, rotate: -6, duration: 0.16, ease: 'power2.out' }, tLose);
+  tl.to('#stamp', { y: 1250, rotate: -48, duration: 0.7, ease: 'power2.in' }, tLose + 0.16);
+  cue(tLose + 0.2, 'whoosh');
+
+  // 6 · "you lived it": colour floods back, the ring glows, confetti bursts
+  const tLv = W(5, 'lived');
+  tl.to(arc, { attr: { stroke: '#ff7eb6' }, duration: 0.25 }, tLv);
+  tl.to(['#game', '.chip'], { filter: 'grayscale(0)', opacity: 1, duration: 0.25 }, tLv);
+  tl.fromTo(glow, { opacity: 0 }, { opacity: 0.75, duration: 0.25, ease: 'power2.out', immediateRender: false }, tLv);
+  tl.to(glow, { opacity: 0.35, duration: 0.8, ease: 'power2.inOut' }, tLv + 0.3);
+  tl.fromTo('#players', { scale: 1.12, svgOrigin: '0 -150' }, { scale: 1, duration: 0.6, ease: 'elastic.out(1, 0.45)', immediateRender: false }, tLv);
+  conf.forEach((d, i) => {
+    const a = rnd() * Math.PI * 2, r = 380 + rnd() * 220;
+    tl.fromTo(d, { x: 0, y: 0, opacity: 1, rotate: 0, scale: 0.6 },
+      { x: Math.cos(a) * r, y: Math.sin(a) * r, rotate: (rnd() - 0.5) * 540, scale: 1, duration: 0.9, ease: 'expo.out', immediateRender: false }, tLv + i * 0.006);
+    tl.to(d, { opacity: 0, y: `+=${80 + rnd() * 80}`, duration: 0.5, ease: 'power1.in' }, tLv + 0.75);
+  });
+  flash(tLv, 0.35); punch(tLv, 1.04);
+  cue(tLv, 'hit'); cue(tLv + 0.05, 'pop'); cue(tLv + 0.15, 'shimmer');
+  LABEL = (t) => (t < tW ? 'Played' : t < tLv ? 'Wasted' : 'Lived');
+
+  // 7 · iris from the centre of the dial to the end card, where the last line lands
+  const tIris = S(6) - 0.5;
+  tl.fromTo('#iris', { scale: 0 }, { scale: 22, duration: 0.42, ease: 'expo.in', immediateRender: false }, tIris);
+  cue(tIris - 0.05, 'whoosh');
+  const tEnd = tIris + 0.42;
+  tl.set('#end', { visibility: 'visible' }, tEnd);
+  cue(tEnd, 'riser', { len: 1.2 });
+  tl.fromTo('#end', { scale: 1.04 }, { scale: 1, duration: D - tEnd, ease: 'power1.out', immediateRender: false }, tEnd);
+  cue(W(6, 'enjoy') + 0.3, 'shimmer');
+
+  const clock = { t: 0 };
+  tl.to(clock, { t: D, duration: D, ease: 'none', onUpdate: () => render(clock.t) }, 0);
+  tl.to({}, { duration: 0.01 }, D);
+  tl.seek(0); render(0);
+  window.__video = { duration: tl.duration(), cues: cues.sort((a, b) => a.t - b.t), seek: (s) => { tl.seek(s, false); render(s); } };
+  return tl.duration();
+};
+</script>
+</body>
+</html>
