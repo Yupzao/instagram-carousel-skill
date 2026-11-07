@@ -1,0 +1,9 @@
+[
+  { "text": "Nobody tells you this about luck.", "rate": "+6%", "pitch": "+0Hz", "gap": 0.28 },
+  { "text": "It doesn't send a warning.", "rate": "+4%", "pitch": "-1Hz", "gap": 0.22 },
+  { "text": "It just shows up... on some random Tuesday.", "rate": "+8%", "pitch": "+2Hz", "gap": 0.3 },
+  { "text": "And if you skipped that day? You missed it.", "rate": "+6%", "pitch": "+1Hz", "gap": 0.4 },
+  { "text": "So you show up. Tired. Bored. Every single day.", "rate": "+10%", "pitch": "+1Hz", "gap": 0.3 },
+  { "text": "Not because every day is lucky...", "rate": "+2%", "pitch": "-1Hz", "gap": 0.18 },
+  { "text": "but so you're there when one is.", "rate": "-2%", "pitch": "-2Hz", "gap": 0 }
+]

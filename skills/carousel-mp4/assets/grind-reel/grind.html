@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Show up every day</title>
+<!-- 9:16 motion graphics, ~20 s, Brian voiceover (timeline.js from edge_voice.py).
+     Palette Espresso Saffron: espresso #2A1D17 + oat #EADFCF + pop saffron #F2A900 (the lucky day only).
+     Type contrast: Fraunces italic carries the voice, Anton uppercase slams the key words, Barlow for micro-type.
+     Story on one calendar: luck lands on a random Tuesday → you skipped it → you show up every day → you're there. -->
+<link href="https://fonts.googleapis.com/css2?family=Anton&family=Fraunces:ital,opsz,wght@1,9..144,400&family=Barlow:wght@600;700&display=block" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+<script src="timeline.js"></script>
+<style>
+  :root { --esp: #2a1d17; --oat: #eadfcf; --pop: #f2a900; --fk: 'Anton', Impact, sans-serif; --fi: 'Fraunces', Georgia, serif; --fm: 'Barlow', system-ui, sans-serif; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1080px; height: 1920px; overflow: hidden; background: var(--esp); }
+  #stage { position: relative; width: 1080px; height: 1920px; overflow: hidden; color: var(--oat);
+           background: radial-gradient(120% 70% at 50% 46%, #3d2b20 0%, var(--esp) 55%, #170f0b 100%); }
+  #drift, #push, #cam { position: absolute; inset: 0; }
+  #grain { position: absolute; inset: 0; opacity: .13; mix-blend-mode: overlay; pointer-events: none; z-index: 40; }
+  #vig { position: absolute; inset: 0; background: radial-gradient(95% 62% at 50% 50%, transparent 55%, rgba(0,0,0,.55)); pointer-events: none; z-index: 39; }
+  .hud { position: absolute; top: 214px; font: 700 31px/1 var(--fm); letter-spacing: .18em; text-transform: uppercase; color: rgba(234,223,207,.62); z-index: 20; }
+  #hudL { left: 80px; } #hudR { right: 80px; font-variant-numeric: tabular-nums; }
+  #hudR b { color: var(--pop); font-weight: 700; }
+
+  /* kinetic lines: two voices */
+  .line { position: absolute; left: 80px; right: 80px; display: flex; flex-wrap: wrap; align-items: baseline; column-gap: calc(var(--cs) * .3); visibility: hidden; transform-origin: 0 50%; }
+  .line .c { display: inline-block; font: italic 400 var(--cs)/1.1 var(--fi); font-variation-settings: 'opsz' 144; color: var(--oat); }
+  .line .k { display: inline-block; position: relative; font: 400 var(--ks)/.98 var(--fk); text-transform: uppercase; color: var(--oat); transform-origin: 50% 85%; }
+  .line .k.p { color: var(--pop); }
+  .line .k .ch { display: inline-block; transform-origin: 50% 90%; margin-right: .02em; }
+  .line .br { flex-basis: 100%; height: 0; }
+  .strike { position: absolute; left: -3%; right: -3%; top: 44%; height: .1em; background: var(--pop); transform-origin: 0 50%; }
+
+  /* the calendar */
+  #cal { position: absolute; left: 70px; top: 860px; width: 940px; visibility: hidden; }
+  #dow { display: grid; grid-template-columns: repeat(7, 124px); column-gap: 12px; margin-bottom: 22px; }
+  #dow span { font: 700 31px/1 var(--fm); letter-spacing: .2em; text-align: center; color: rgba(234,223,207,.55); }
+  #grid { position: relative; display: grid; grid-template-columns: repeat(7, 124px); grid-auto-rows: 124px; gap: 12px; }
+  .tile { position: relative; border-radius: 22px; border: 2px solid rgba(234,223,207,.2); background: rgba(234,223,207,.04); }
+  .tile.next { opacity: .3; }
+  .tile b, #luck b { position: absolute; left: 16px; top: 13px; font: 700 34px/1 var(--fm); color: rgba(234,223,207,.75); font-variant-numeric: tabular-nums; }
+  svg.m { position: absolute; right: 14px; bottom: 14px; width: 66px; height: 66px; overflow: visible; }
+  svg.m * { fill: none; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 1; stroke-dashoffset: 1; }
+  .x * { stroke: rgba(234,223,207,.5); stroke-width: 7; }
+  .ck * { stroke: var(--oat); stroke-width: 9; }
+  #luck { position: absolute; left: 136px; top: 272px; width: 124px; height: 124px; border-radius: 22px; background: var(--pop); opacity: 0;
+          box-shadow: 0 0 70px rgba(242,169,0,.55); }
+  #luck b { color: var(--esp); }
+  #luck .ck * { stroke: var(--esp); }
+  #luck .x * { stroke: var(--esp); }
+  #spark { position: absolute; right: -30px; top: -58px; font: 400 76px/1 var(--fm); color: var(--pop); opacity: 0; }
+  #hop { position: absolute; left: 0; top: 0; width: 124px; height: 124px; border-radius: 22px; border: 6px solid var(--pop); opacity: 0; }
+  #iris { position: absolute; width: 200px; height: 200px; margin: -100px 0 0 -100px; border-radius: 50%; background: var(--pop); transform: scale(0); z-index: 30; }
+
+  /* end card on the pop colour */
+  #end { position: absolute; inset: 0; background: var(--pop); color: var(--esp); visibility: hidden; z-index: 35; }
+  #end .k { position: absolute; left: 0; right: 0; top: 690px; text-align: center; font: 400 240px/.95 var(--fk); text-transform: uppercase; white-space: nowrap; }
+  #end .k .ch { display: inline-block; transform-origin: 50% 90%; }
+  #end .c { position: absolute; left: 0; right: 0; top: 1000px; text-align: center; font: italic 400 112px/1 var(--fi); font-variation-settings: 'opsz' 144; }
+  #flash { position: absolute; inset: 0; background: #fff8ea; opacity: 0; z-index: 45; pointer-events: none; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div id="drift"><div id="push"><div id="cam">
+    <div id="cal">
+      <div id="dow"><span>M</span><span id="tue">T</span><span>W</span><span>T</span><span>F</span><span>S</span><span>S</span></div>
+      <div id="grid">
+        <div id="hop"></div>
+        <div id="luck"><b>16</b><span id="spark">✦</span>
+          <svg class="m ck" viewBox="0 0 66 66"><polyline points="8,36 26,54 60,12" pathLength="1"/></svg>
+          <svg class="m x" viewBox="0 0 66 66"><line x1="10" y1="10" x2="56" y2="56" pathLength="1"/><line x1="56" y1="10" x2="10" y2="56" pathLength="1"/></svg>
+        </div>
+      </div>
+    </div>
+    <div id="lines"></div>
+    <div id="iris"></div>
+  </div></div></div>
+  <div class="hud" id="hudL">The grind</div>
+  <div class="hud" id="hudR">Day <b>00</b></div>
+  <div id="end"><div class="k" id="endk"></div><div class="c" id="endc">every single day.</div></div>
+  <div id="vig"></div>
+  <canvas id="grain" width="1080" height="1920"></canvas>
+  <div id="flash"></div>
+</div>
+<script>
+const TL = window.TIMELINE;
+const S = (i) => TL.lines[i].start;
+const W = (i, word, nth = 0) => (TL.lines[i].words.filter((w) => w.w.toLowerCase() === word)[nth] || { t: S(i) }).t;
+let seed = 16; const rnd = () => ((seed = (seed * 16807) % 2147483647) / 2147483647);
+
+// punctuation from the script (word boundaries come without it)
+TL.lines.forEach((ln) => {
+  let pos = 0; const low = ln.text.toLowerCase();
+  ln.words.forEach((w) => {
+    const i = low.indexOf(w.w.toLowerCase(), pos); w.p = '';
+    if (i < 0) return;
+    const end = i + w.w.length, m = ln.text.slice(end).match(/^[.?!,]+/);
+    if (m) w.p = m[0].replace('...', '…');
+    pos = end;
+  });
+});
+
+// per line: key words (L = letter by letter, P = pop colour), position, sizes, line breaks, sound per key
+const LINES = [
+  { keys: { luck: 'LP' }, top: 640, cs: 96, ks: 340, br: ['you'], snd: { luck: 'impact' } },
+  { keys: { warning: '' }, top: 760, cs: 96, ks: 220, strike: 'warning', snd: { warning: 'hit' } },
+  { keys: { random: '', tuesday: 'P' }, top: 330, cs: 70, ks: 132, br: ['up'], snd: { tuesday: 'hit' } },
+  { keys: { skipped: '', missed: '' }, top: 330, cs: 70, ks: 132, br: ['skipped', 'day'], snd: { skipped: 'hit', missed: 'impact' } },
+  { keys: { show: '', up: '', tired: '', bored: '', every: '', single: '', day: '' }, top: 330, cs: 70, ks: 108, br: ['up', 'bored'],
+    snd: { up: 'hit', tired: 'hit', bored: 'hit', day: 'impact' } },
+  { keys: { lucky: '' }, top: 330, cs: 70, ks: 132, br: ['because'], snd: { lucky: 'hit' } },
+  { keys: { there: '', one: 'P' }, top: 330, cs: 70, ks: 132, br: ['there'], snd: { there: 'hit' } },
+];
+
+const linesEl = document.getElementById('lines');
+const built = LINES.map((cfg, li) => {
+  const el = document.createElement('div');
+  el.className = 'line'; el.style.cssText = `top:${cfg.top}px;--cs:${cfg.cs}px;--ks:${cfg.ks}px`;
+  const items = TL.lines[li].words.map((w) => {
+    const key = w.w.toLowerCase().replace(/[^a-z']/g, ''), mode = cfg.keys[key];
+    const span = document.createElement('span'), txt = (w.w + w.p).replace(/'/g, '’');
+    if (mode === undefined) { span.className = 'c'; span.textContent = txt; }
+    else {
+      span.className = 'k' + (mode.includes('P') ? ' p' : '');
+      if (mode.includes('L')) span.innerHTML = [...txt].map((c) => `<span class="ch">${c}</span>`).join('');
+      else span.textContent = txt;
+      if (cfg.strike === key) span.insertAdjacentHTML('beforeend', '<i class="strike"></i>');
+    }
+    el.appendChild(span);
+    if ((cfg.br || []).includes(key)) { const b = document.createElement('i'); b.className = 'br'; el.appendChild(b); }
+    return { w, key, mode, span };
+  });
+  linesEl.appendChild(el);
+  return { el, items };
+});
+
+// calendar: a month that starts on a Monday; the lucky day is Tuesday the 16th (index 15)
+const grid = document.getElementById('grid'), LUCKY = 15;
+const tiles = [];
+for (let i = 0; i < 35; i++) {
+  const t = document.createElement('div');
+  t.className = 'tile' + (i >= 30 ? ' next' : '');
+  t.innerHTML = `<b>${i < 30 ? i + 1 : i - 29}</b>` +
+    '<svg class="m ck" viewBox="0 0 66 66"><polyline points="8,36 26,54 60,12" pathLength="1"/></svg>' +
+    '<svg class="m x" viewBox="0 0 66 66"><line x1="10" y1="10" x2="56" y2="56" pathLength="1"/><line x1="56" y1="10" x2="10" y2="56" pathLength="1"/></svg>';
+  grid.appendChild(t); tiles.push(t);
+}
+const tilePos = (i) => ({ x: (i % 7) * 136, y: Math.floor(i / 7) * 136 });
+
+// film grain, re-seeded a few times a second
+const gcv = document.getElementById('grain'), gg = gcv.getContext('2d');
+const noise = document.createElement('canvas'); noise.width = noise.height = 256;
+{ const nx = noise.getContext('2d'), id = nx.createImageData(256, 256);
+  for (let i = 0; i < id.data.length; i += 4) { const v = rnd() * 255; id.data[i] = id.data[i + 1] = id.data[i + 2] = v; id.data[i + 3] = 255; }
+  nx.putImageData(id, 0, 0); }
+let grainK = -1;
+const grain = (t) => {
+  const k = Math.floor(t * 12); if (k === grainK) return; grainK = k;
+  const ox = (k * 97) % 256, oy = (k * 57) % 256;
+  for (let y = -oy; y < 1920; y += 256) for (let x = -ox; x < 1080; x += 256) gg.drawImage(noise, x, y);
+};
+
+// streak counter (top right)
+const CHECK0 = 10.85, CHECK_STEP = 0.11;
+const hudR = document.getElementById('hudR');
+let hudKey = '';
+const counter = (t) => {
+  const n = t < CHECK0 ? 0 : Math.min(30, Math.floor((t - CHECK0) / CHECK_STEP) + 1);
+  const html = `Day <b>${String(n).padStart(2, '0')}</b>`;
+  if (html !== hudKey) { hudR.innerHTML = html; hudKey = html; }
+};
+const render = (t) => { grain(t); counter(t); };
+
+window.__scene = async () => {
+  await document.fonts.ready;
+  const tl = gsap.timeline({ paused: true });
+  const cues = [];
+  const cue = (t, type, extra = {}) => cues.push({ t: Math.max(0, t), type, ...extra });
+  const LAST = TL.lines[TL.lines.length - 1];
+  const D = LAST.end + 1.25;
+  const cam = document.getElementById('cam');
+  const flash = (t, a = 0.5) => tl.fromTo('#flash', { opacity: a }, { opacity: 0, duration: 0.3, ease: 'power2.out', immediateRender: false }, t);
+  const shake = (t, amp = 14) => tl.to(cam, { keyframes: [{ x: amp, y: -amp * 0.6 }, { x: -amp * 0.8, y: amp * 0.5 }, { x: amp * 0.4, y: -amp * 0.3 }, { x: 0, y: 0 }], duration: 0.26 }, t);
+  const punch = (t, s = 1.05) => tl.fromTo(cam, { scale: s }, { scale: 1, duration: 0.45, ease: 'expo.out', immediateRender: false }, t);
+
+  // the camera never stops: a slow push for the whole piece
+  tl.fromTo('#drift', { scale: 1, y: 0 }, { scale: 1.05, y: -18, duration: D, ease: 'none' }, 0);
+
+  // kinetic lines: connectors glide (slow, long settle), key words slam (fast); the block leaves before the next line
+  built.forEach(({ el, items }, li) => {
+    const cfg = LINES[li], t0 = items[0].w.t - 0.08;
+    const out = li < LINES.length - 1 ? S(li + 1) - 0.16 : null;
+    gsap.set(items.map((it) => it.span), { opacity: 0 });
+    tl.set(el, { visibility: 'visible' }, t0);
+    items.forEach(({ w, key, mode, span }) => {
+      if (mode === undefined) {
+        tl.fromTo(span, { opacity: 0, y: 30, rotate: -2, filter: 'blur(6px)' },
+          { opacity: 1, y: 0, rotate: 0, filter: 'blur(0px)', duration: 0.55, ease: 'expo.out', immediateRender: false }, w.t - 0.04);
+      } else if (mode.includes('L')) {
+        tl.set(span, { opacity: 1 }, w.t);
+        span.querySelectorAll('.ch').forEach((c, j) => {
+          tl.fromTo(c, { opacity: 0, y: 170, scale: 0.2, rotate: (rnd() - 0.5) * 60 },
+            { opacity: 1, y: 0, scale: 1, rotate: (rnd() - 0.5) * 10, duration: 0.5, ease: 'back.out(2.2)', immediateRender: false }, w.t + j * 0.045);
+        });
+      } else {
+        tl.fromTo(span, { opacity: 0, scale: 2.3, filter: 'blur(14px)' },
+          { opacity: 1, scale: 1, filter: 'blur(0px)', duration: 0.28, ease: 'power4.out', immediateRender: false }, w.t);
+      }
+      if (cfg.snd && cfg.snd[key]) cue(w.t, cfg.snd[key]);
+    });
+    if (out) tl.to(el, { scale: 1.14, opacity: 0, filter: 'blur(20px)', duration: 0.26, ease: 'power2.in' }, out - 0.26);
+  });
+
+  // 1 · hook: LUCK lands letter by letter
+  const tLuck = W(0, 'luck');
+  shake(tLuck + 0.12, 16); punch(tLuck + 0.1, 1.06); flash(tLuck + 0.1, 0.22);
+  // 2 · WARNING gets struck through
+  const tWarn = W(1, 'warning');
+  gsap.set('.strike', { scaleX: 0, rotate: -3 });
+  tl.fromTo('.strike', { scaleX: 0, rotate: -3 }, { scaleX: 1, rotate: -3, duration: 0.24, ease: 'power3.out', immediateRender: false }, tWarn + 0.42);
+  cue(tWarn + 0.42, 'tick');
+
+  // 3 · the calendar shows up; a highlight hops around and lands on a random Tuesday
+  const tCal = S(2) - 0.1;
+  tl.set('#cal', { visibility: 'visible' }, tCal); flash(tCal, 0.35); cue(tCal - 0.12, 'whoosh');
+  tl.fromTo('#dow span', { opacity: 0, y: 20 }, { opacity: 1, y: 0, duration: 0.4, ease: 'expo.out', stagger: 0.03, immediateRender: false }, tCal + 0.05);
+  tl.fromTo(tiles, { opacity: 0, scale: 0.3 }, { opacity: (i) => (i >= 30 ? 0.3 : 1), scale: 1, duration: 0.42, ease: 'back.out(2)',
+    stagger: { each: 0.012, from: 'random' }, immediateRender: false }, tCal + 0.08);
+  cue(tCal + 0.12, 'pop'); cue(tCal + 0.38, 'pop');
+  const hop = document.getElementById('hop'), luck = document.getElementById('luck');
+  const hopRun = (t, path, land) => {
+    path.forEach((i, j) => { const p = tilePos(i); tl.set(hop, { x: p.x, y: p.y, opacity: 1 }, t[j]); if (j % 2 === 0) cue(t[j], 'tick'); });
+    if (!land) tl.to(hop, { opacity: 0, duration: 0.15 }, t[t.length - 1] + 0.08);
+  };
+  const tTue = W(2, 'tuesday');
+  hopRun([tTue - 0.62, tTue - 0.54, tTue - 0.46, tTue - 0.37, tTue - 0.27, tTue - 0.15], [3, 26, 9, 33, 20, 12]);
+  tl.set(hop, { opacity: 0 }, tTue);
+  tl.fromTo(luck, { opacity: 0, scale: 1.45 }, { opacity: 1, scale: 1, duration: 0.5, ease: 'back.out(2.4)', immediateRender: false }, tTue);
+  tl.fromTo('#spark', { opacity: 0, scale: 0, rotate: -90 }, { opacity: 1, scale: 1, rotate: 0, duration: 0.5, ease: 'back.out(3)', immediateRender: false }, tTue + 0.1);
+  tl.to('#spark', { rotate: 90, duration: 1.2, ease: 'none' }, tTue + 0.6);
+  tl.to('#tue', { color: '#f2a900', duration: 0.15 }, tTue);
+  punch(tTue, 1.04); cue(tTue + 0.05, 'pop'); cue(tTue + 0.12, 'shimmer');
+
+  // 4 · skipped days get crossed out, the lucky one too: missed
+  const tSkip = W(3, 'skipped'), tDay = W(3, 'day'), tMiss = W(3, 'missed');
+  const skipped = [0, 4, 6, 8, 11, 13, 17, 19, 22, 24, 27, 29, 2, 23];
+  skipped.forEach((i, j) => {
+    const at = tSkip + 0.05 + j * 0.035;
+    tl.to(tiles[i].querySelectorAll('.x *'), { strokeDashoffset: 0, duration: 0.18, ease: 'power2.out' }, at);
+    tl.to(tiles[i], { opacity: 0.5, duration: 0.2 }, at);
+  });
+  cue(tSkip + 0.1, 'stutter'); cue(tSkip + 0.3, 'stutter');
+  tl.to('#spark', { opacity: 0, scale: 0.4, duration: 0.2 }, tDay - 0.1);
+  tl.to(luck, { backgroundColor: '#6b5a4c', boxShadow: '0 0 0px rgba(242,169,0,0)', duration: 0.35, ease: 'power2.out' }, tDay - 0.05);
+  tl.to('#luck .x *', { strokeDashoffset: 0, duration: 0.22, ease: 'power2.out', stagger: 0.08 }, tDay + 0.05);
+  tl.to('#tue', { color: 'rgba(234,223,207,.55)', duration: 0.3 }, tDay);
+  tl.to(luck, { scale: 0.9, opacity: 0.55, duration: 0.3, ease: 'power3.out' }, tMiss);
+  shake(tMiss + 0.02, 18); punch(tMiss, 1.05);
+
+  // 5 · reset, then a check on every single day
+  const tReset = S(4) - 0.22;
+  cue(tReset - 0.1, 'whoosh'); flash(tReset, 0.4);
+  tl.set(luck, { opacity: 0 }, tReset);
+  tl.set(tiles.flatMap((t) => [...t.querySelectorAll('.x *')]), { strokeDashoffset: 1 }, tReset);
+  tl.set(tiles, { opacity: (i) => (i >= 30 ? 0.3 : 1) }, tReset);
+  for (let i = 0; i < 30; i++) {
+    const at = CHECK0 + i * CHECK_STEP;
+    tl.to(tiles[i].querySelectorAll('.ck *'), { strokeDashoffset: 0, duration: 0.2, ease: 'power2.out' }, at);
+    tl.fromTo(tiles[i], { scale: 1.1, backgroundColor: 'rgba(234,223,207,.22)' },
+      { scale: 1, backgroundColor: 'rgba(234,223,207,.1)', duration: 0.35, ease: 'expo.out', immediateRender: false }, at);
+    if (i % 3 === 0) cue(at, 'tick');
+  }
+  punch(W(4, 'day'), 1.05); shake(W(4, 'day') + 0.02, 12);
+
+  // 6 · not every day is lucky: a wave runs across the month, the highlight hops but lands nowhere
+  tl.to(tiles.slice(0, 30), { keyframes: [{ y: -16, duration: 0.16, ease: 'power2.out' }, { y: 0, duration: 0.4, ease: 'power2.in' }],
+    stagger: { each: 0.02, grid: [5, 6], from: 'start' } }, W(5, 'every') - 0.05);
+  const tL = W(5, 'lucky');
+  hopRun([tL - 0.08, tL + 0.02, tL + 0.12, tL + 0.23, tL + 0.36], [21, 5, 28, 10, 18], false);
+
+  // 7 · this time you're there: the lucky day lights up with a check, the camera pushes in, iris to the end card
+  const tThere = W(6, 'there'), tOne = W(6, 'one'), tIs = W(6, 'is');
+  const lp = tilePos(LUCKY), cal = document.getElementById('cal'), g0 = grid.getBoundingClientRect();
+  const cx = g0.left + lp.x + 62, cy = g0.top + lp.y + 62;
+  const c0 = cal.getBoundingClientRect();
+  gsap.set(cal, { transformOrigin: `${cx - c0.left}px ${cy - c0.top}px` }); // push the calendar only, around the lucky tile
+  gsap.set('#iris', { left: cx, top: cy });
+  tl.set(luck, { backgroundColor: '#f2a900', boxShadow: '0 0 70px rgba(242,169,0,.55)', scale: 1 }, tThere - 0.3);
+  tl.set('#luck .x *', { strokeDashoffset: 1 }, tThere - 0.3);
+  tl.set('#luck .ck *', { strokeDashoffset: 1 }, tThere - 0.3);
+  tl.fromTo(luck, { opacity: 0, scale: 1.5 }, { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2.6)', immediateRender: false }, tThere);
+  tl.to('#luck .ck *', { strokeDashoffset: 0, duration: 0.25, ease: 'power2.out' }, tThere + 0.15);
+  tl.to('#tue', { color: '#f2a900', duration: 0.15 }, tThere);
+  tl.fromTo('#spark', { opacity: 0, scale: 0 }, { opacity: 1, scale: 1, duration: 0.4, ease: 'back.out(3)', immediateRender: false }, tThere + 0.1);
+  cue(tThere + 0.02, 'pop');
+  tl.to(cal, { scale: 1.16, duration: tIs - tThere, ease: 'power2.in' }, tThere);
+  tl.fromTo('#iris', { scale: 0 }, { scale: 26, duration: 0.42, ease: 'expo.in', immediateRender: false }, tOne - 0.05);
+  cue(tOne - 0.1, 'whoosh');
+  const tEnd = tOne + 0.37;
+  tl.set('#end', { visibility: 'visible' }, tEnd);
+  const endk = document.getElementById('endk');
+  endk.innerHTML = [...'Show up.'].map((c) => (c === ' ' ? '<span class="ch">&nbsp;</span>' : `<span class="ch">${c}</span>`)).join('');
+  endk.querySelectorAll('.ch').forEach((c, j) => tl.fromTo(c, { opacity: 0, y: 150, scale: 0.3, rotate: (rnd() - 0.5) * 50 },
+    { opacity: 1, y: 0, scale: 1, rotate: (rnd() - 0.5) * 8, duration: 0.5, ease: 'back.out(2.2)', immediateRender: false }, tEnd + 0.02 + j * 0.04));
+  tl.fromTo('#endc', { opacity: 0, y: 34, filter: 'blur(8px)' }, { opacity: 1, y: 0, filter: 'blur(0px)', duration: 0.7, ease: 'expo.out', immediateRender: false }, tEnd + 0.38);
+  tl.fromTo('#end', { scale: 1.04 }, { scale: 1, duration: D - tEnd, ease: 'power1.out', immediateRender: false }, tEnd);
+  cue(tEnd, 'riser', { len: 1.4 }); cue(tEnd, 'impact'); cue(tEnd + 0.4, 'shimmer');
+
+  // the world clock (grain + counter)
+  const clock = { t: 0 };
+  tl.to(clock, { t: D, duration: D, ease: 'none', onUpdate: () => render(clock.t) }, 0);
+  tl.to({}, { duration: 0.01 }, D);
+  tl.seek(0); render(0);
+  window.__video = { duration: tl.duration(), cues: cues.sort((a, b) => a.t - b.t), seek: (s) => { tl.seek(s, false); render(s); } };
+  return tl.duration();
+};
+</script>
+</body>
+</html>

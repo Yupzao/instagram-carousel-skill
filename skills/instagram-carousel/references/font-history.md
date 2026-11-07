@@ -9,3 +9,4 @@ The next carousel uses a font pairing **and** a palette different from the last 
 - (example) E-cinematic · Bodoni Moda + Playfair italic + Pinyon Script + DM Sans
 - 2026-11-02 · ISV BMW 320 motion graphics 9:16 (VD Carros) · Archivo Black + Archivo · brand (#141416 + #F1F1F3 + pop #EC4B57)
 - 2026-11-02 · Importação BMW M3 F80 motion graphics 16:9 (VD Carros) · Bricolage Grotesque + Geist · brand (#141416 + #F1F1F3 + pop #EC4B57)
+- 2026-11-07 · Grind / show up every day, motion graphics 9:16 + Brian voiceover · Anton + Fraunces italic + Barlow · Espresso Saffron (#2A1D17 + #EADFCF + pop #F2A900)

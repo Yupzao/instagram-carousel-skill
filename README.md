@@ -123,6 +123,3 @@ node skills/instagram-carousel/scripts/contrast.mjs "#FFFFFF" "#2F4BDB" 46
 [MIT](LICENSE): free to use, modify and distribute, keeping the copyright notice.
 
 External resources loaded at runtime keep their own licences: Google Fonts (OFL), GSAP (GreenSock standard licence), mp4-muxer (MIT) and Openverse sounds (CC0 / public domain only).
-
----
-🤖 Built with [Claude Code](https://claude.com/claude-code)
